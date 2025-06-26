@@ -1,6 +1,7 @@
 import { StatsGrid } from '@/components/Dashboard/StatsGrid';
 import { ModelsList } from '@/components/Dashboard/ModelsList';
 import { RecentActivity } from '@/components/Dashboard/RecentActivity';
+import { AnalyticsDashboard } from '@/components/Dashboard/AnalyticsDashboard';
 
 export default function Dashboard() {
   return (
@@ -14,8 +15,8 @@ export default function Dashboard() {
       </div>
 
       <div className="space-y-4 sm:space-y-6">
-        <StatsGrid />
-
+        <AnalyticsDashboard />
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2">
             <ModelsList />
