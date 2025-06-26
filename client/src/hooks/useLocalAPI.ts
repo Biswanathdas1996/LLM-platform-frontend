@@ -6,8 +6,8 @@ export function useHealth() {
     queryKey: ['/api/v1/health'],
     queryFn: () => api.health(),
     refetchInterval: 30000, // Check health every 30 seconds
-    retry: 1,
-    retryDelay: 1000,
+    retry: 0, // Don't retry health checks to avoid spam
+    staleTime: 0, // Always check for fresh data
   });
 }
 
@@ -15,8 +15,8 @@ export function useModels() {
   return useQuery({
     queryKey: ['/api/v1/models'],
     queryFn: () => api.getModels(),
-    retry: 1,
-    retryDelay: 1000,
+    retry: 0, // Don't retry to avoid spam when API is down
+    staleTime: 5000, // Cache for 5 seconds
   });
 }
 
@@ -74,7 +74,7 @@ export function useCacheStatus() {
   return useQuery({
     queryKey: ['/api/v1/cache'],
     queryFn: () => api.getCacheStatus(),
-    retry: 1,
-    retryDelay: 1000,
+    retry: 0, // Don't retry to avoid spam when API is down
+    staleTime: 5000, // Cache for 5 seconds
   });
 }

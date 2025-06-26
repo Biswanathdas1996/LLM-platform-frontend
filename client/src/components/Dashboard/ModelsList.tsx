@@ -2,11 +2,12 @@ import { Box, Cloud, Trash2, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ApiError } from '@/components/ui/api-error';
 import { useModels, useDeleteModel } from '@/hooks/useLocalAPI';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export function ModelsList() {
-  const { data: modelsData, isLoading, refetch } = useModels();
+  const { data: modelsData, isLoading, error, refetch } = useModels();
   const deleteMutation = useDeleteModel();
   const { addNotification } = useNotifications();
 
@@ -26,6 +27,18 @@ export function ModelsList() {
       });
     }
   };
+
+  if (error) {
+    return (
+      <div className="lg:col-span-2">
+        <ApiError 
+          error={error as Error} 
+          onRetry={() => refetch()}
+          title="Unable to Load Models"
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
