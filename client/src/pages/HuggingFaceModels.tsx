@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { ApiError } from '@/components/ui/api-error';
+import { ApiKeyConfig } from '@/components/ApiKeyConfig';
 import { huggingFaceApi, type HuggingFaceModel } from '@/lib/huggingface-api';
 
 const MODEL_TYPES = [
@@ -31,6 +32,7 @@ export default function HuggingFaceModels() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<HuggingFaceModel | null>(null);
   const [loadingModel, setLoadingModel] = useState<string | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   // Add Model Form State
   const [newModel, setNewModel] = useState({
@@ -50,6 +52,7 @@ export default function HuggingFaceModels() {
 
   useEffect(() => {
     fetchModels();
+    setHasApiKey(huggingFaceApi.hasApiKey());
   }, [filterType]);
 
   const fetchModels = async () => {
@@ -223,6 +226,18 @@ export default function HuggingFaceModels() {
           </div>
         </div>
       </div>
+
+      {/* API Key Configuration */}
+      {!hasApiKey && (
+        <div className="space-y-6">
+          <ApiKeyConfig onApiKeyChange={(hasKey) => {
+            setHasApiKey(hasKey);
+            if (hasKey) {
+              huggingFaceApi.refreshApiKey();
+            }
+          }} />
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex items-center justify-between gap-4">
