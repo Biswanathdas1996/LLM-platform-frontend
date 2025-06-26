@@ -42,16 +42,18 @@ const activities = [
 
 export function RecentActivity() {
   return (
-    <Card className="relative overflow-hidden border border-border/50 hover:border-primary/30 transition-all duration-300">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/3 via-purple-500/3 to-teal-500/3 opacity-50" />
-      
-      <CardHeader className="pb-3 relative z-10">
-        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg">
-            <PlayCircle className="h-4 w-4 text-white" />
+    <Card className="modern-card overflow-hidden border-2 border-indigo-200/60 dark:border-indigo-800/30 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/10 backdrop-blur-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      <CardHeader className="pb-3 relative">
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+            <PlayCircle className="h-5 w-5 text-white drop-shadow-sm" />
           </div>
           Recent Activity
         </CardTitle>
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-20 h-20 opacity-5 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 rounded-bl-full"></div>
+        </div>
       </CardHeader>
       
       <CardContent className="p-4 relative z-10">

@@ -58,10 +58,15 @@ export function ModelsList() {
   }
 
   return (
-    <Card className="lg:col-span-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-      <CardHeader className="border-b border-slate-200 dark:border-slate-700">
+    <Card className="lg:col-span-2 modern-card overflow-hidden border-2 border-purple-200/60 dark:border-purple-800/30 bg-gradient-to-br from-purple-50/50 to-indigo-50/30 dark:from-purple-950/20 dark:to-indigo-950/10 backdrop-blur-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      <CardHeader className="border-b border-purple-200/40 dark:border-purple-700/40 relative">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+          <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+              <svg className="h-5 w-5 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
             Available Models
           </CardTitle>
           <Button
@@ -72,6 +77,10 @@ export function ModelsList() {
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
+        </div>
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-20 h-20 opacity-5 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-600 rounded-bl-full"></div>
         </div>
       </CardHeader>
       

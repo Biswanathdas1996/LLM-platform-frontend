@@ -26,11 +26,20 @@ export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
   };
 
   return (
-    <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+    <Card className="modern-card overflow-hidden border-2 border-emerald-200/60 dark:border-emerald-800/30 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 dark:from-emerald-950/20 dark:to-teal-950/10 backdrop-blur-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      <CardHeader className="relative">
+        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+            <svg className="h-5 w-5 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+            </svg>
+          </div>
           Configuration
         </CardTitle>
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-20 h-20 opacity-5 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 rounded-bl-full"></div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

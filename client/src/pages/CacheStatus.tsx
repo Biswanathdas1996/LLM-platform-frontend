@@ -83,10 +83,12 @@ export default function CacheStatus() {
           </Button>
         </div>
 
-        <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <HardDrive className="h-5 w-5" />
+        <Card className="modern-card overflow-hidden border-2 border-orange-200/60 dark:border-orange-800/30 bg-gradient-to-br from-orange-50/50 to-red-50/30 dark:from-orange-950/20 dark:to-red-950/10 backdrop-blur-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+          <CardHeader className="relative">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 via-red-500 to-rose-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                <HardDrive className="h-5 w-5 text-white drop-shadow-sm" />
+              </div>
               <span>Cached Models</span>
               {cacheData && (
                 <Badge variant="secondary">
@@ -94,6 +96,10 @@ export default function CacheStatus() {
                 </Badge>
               )}
             </CardTitle>
+            {/* Decorative gradient overlay */}
+            <div className="absolute top-0 right-0 w-20 h-20 opacity-5 overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-br from-orange-500 via-red-500 to-rose-600 rounded-bl-full"></div>
+            </div>
           </CardHeader>
           
           <CardContent>

@@ -141,12 +141,18 @@ export function ModelUpload() {
   };
 
   return (
-    <Card className="modern-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <Upload className="h-5 w-5 text-primary" />
+    <Card className="modern-card overflow-hidden border-2 border-blue-200/60 dark:border-blue-800/30 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-blue-950/20 dark:to-indigo-950/10 backdrop-blur-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      <CardHeader className="relative">
+        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+            <Upload className="h-5 w-5 text-white drop-shadow-sm" />
+          </div>
           Model Upload
         </CardTitle>
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-20 h-20 opacity-5 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-bl-full"></div>
+        </div>
       </CardHeader>
       <CardContent>
         <div

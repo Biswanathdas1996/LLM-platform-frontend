@@ -51,18 +51,20 @@ export function ExternalAPIConfig() {
   };
 
   return (
-    <Card className="relative overflow-hidden border border-border/50 hover:border-primary/30 transition-all duration-300 group">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/3 via-purple-500/3 to-teal-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
-      <CardHeader className="pb-3 relative z-10">
-        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-cyan-500/25 transition-all duration-300">
-            <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <Card className="modern-card overflow-hidden border-2 border-cyan-200/60 dark:border-cyan-800/30 bg-gradient-to-br from-cyan-50/50 to-teal-50/30 dark:from-cyan-950/20 dark:to-teal-950/10 backdrop-blur-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+      <CardHeader className="pb-3 relative">
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500 via-teal-500 to-blue-600 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+            <svg className="h-5 w-5 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
           </div>
           Add External API
         </CardTitle>
+        {/* Decorative gradient overlay */}
+        <div className="absolute top-0 right-0 w-20 h-20 opacity-5 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-br from-cyan-500 via-teal-500 to-blue-600 rounded-bl-full"></div>
+        </div>
       </CardHeader>
       <CardContent className="relative z-10">
         <Form {...form}>
