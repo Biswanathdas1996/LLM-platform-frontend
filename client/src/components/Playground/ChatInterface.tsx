@@ -99,7 +99,7 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 overflow-y-auto p-6 space-y-4">
+      <CardContent className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[60vh]">
         {messages.length === 0 ? (
           <div className="text-center text-slate-500 dark:text-slate-400 mt-8">
             <Bot className="mx-auto h-12 w-12 mb-4" />
