@@ -21,7 +21,7 @@ function AppContent() {
   const { notifications, removeNotification } = useNotifications();
 
   return (
-    <div className="min-h-screen bg-background bg-pattern-noise">
+    <div className="min-h-screen bg-background bg-pattern-noise overflow-hidden">
       <TopNavigation />
       <div className="flex h-[calc(100vh-3rem)]">
         <Sidebar />
