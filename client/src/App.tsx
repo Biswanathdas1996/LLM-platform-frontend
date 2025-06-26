@@ -23,7 +23,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background bg-pattern-noise overflow-hidden">
       <TopNavigation />
-      <div className="flex h-[calc(100vh-3rem)]">
+      <div className="flex h-screen pt-12">
         <Sidebar />
         <main className="flex-1 overflow-y-auto bg-professional bg-pattern-dots relative z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-transparent to-muted/10" />

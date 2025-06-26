@@ -10,7 +10,7 @@ export function TopNavigation() {
   const isHealthy = health?.status === 'healthy';
 
   return (
-    <nav className="border-b bg-card/80 bg-pattern-dots backdrop-blur-md h-12 relative z-50">
+    <nav className="border-b bg-card/80 bg-pattern-dots backdrop-blur-md h-12 fixed top-0 left-0 right-0 z-50">
       <div className="absolute inset-0 bg-gradient-to-r from-card/60 via-card/40 to-card/60" />
       <div className="max-w-7xl mx-auto px-4 h-full relative z-10">
         <div className="flex justify-between items-center h-full">
