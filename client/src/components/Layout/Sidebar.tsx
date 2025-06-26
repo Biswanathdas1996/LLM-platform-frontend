@@ -70,38 +70,39 @@ export function Sidebar() {
   return (
     <aside className="w-64 border-r bg-card/95 backdrop-blur-sm h-screen hidden lg:block relative border-border/50 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5" />
-      <nav className="p-4 space-y-6 relative z-10 h-full flex flex-col">
+      <nav className="p-4 space-y-6 relative z-10 h-full flex flex-col overflow-hidden">
         {/* Primary Navigation */}
-        <div className="space-y-1 flex-1">
-
-          {navigation.map((item) => {
-            const isActive = location === item.href;
-            const Icon = item.icon;
-            
-            return (
-              <Link key={item.name} href={item.href}>
-                <div className={`
-                  flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
-                  ${isActive 
-                    ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg border border-primary/20' 
-                    : 'text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:text-foreground hover:shadow-sm'
-                  }
-                `}>
-                  <Icon className="h-4 w-4 mr-3" />
-                  <span className="flex-1">{item.name}</span>
-                  
-                  {item.name === 'Models' && modelsData && (
-                    <Badge 
-                      variant={isActive ? "secondary" : "outline"} 
-                      className={`ml-2 text-xs ${isActive ? 'bg-white/20 text-white border-white/30' : ''}`}
-                    >
-                      {modelsData.count}
-                    </Badge>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="space-y-1">
+            {navigation.map((item) => {
+              const isActive = location === item.href;
+              const Icon = item.icon;
+              
+              return (
+                <Link key={item.name} href={item.href}>
+                  <div className={`
+                    flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg border border-primary/20' 
+                      : 'text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:text-foreground hover:shadow-sm'
+                    }
+                  `}>
+                    <Icon className="h-4 w-4 mr-3" />
+                    <span className="flex-1">{item.name}</span>
+                    
+                    {item.name === 'Models' && modelsData && (
+                      <Badge 
+                        variant={isActive ? "secondary" : "outline"} 
+                        className={`ml-2 text-xs ${isActive ? 'bg-white/20 text-white border-white/30' : ''}`}
+                      >
+                        {modelsData.count}
+                      </Badge>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
         
         {/* Quick Actions */}
