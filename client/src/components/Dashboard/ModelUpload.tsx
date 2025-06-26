@@ -126,16 +126,16 @@ export function ModelUpload() {
   const getUploadIcon = () => {
     switch (uploadState) {
       case 'uploading':
-        return <Loader2 className="h-8 w-8 sm:h-12 sm:w-12 animate-spin text-blue-500" />;
+        return <Loader2 className="h-8 w-8 animate-spin text-blue-500" />;
       case 'success':
-        return <Check className="h-8 w-8 sm:h-12 sm:w-12 text-emerald-500" />;
+        return <Check className="h-8 w-8 text-emerald-500" />;
       case 'error':
-        return <AlertCircle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />;
+        return <AlertCircle className="h-8 w-8 text-red-500" />;
       default:
-        return <CloudUpload className={`h-8 w-8 sm:h-12 sm:w-12 transition-all duration-300 ${
+        return <CloudUpload className={`h-8 w-8 transition-colors ${
           dragActive 
-            ? 'text-blue-500 scale-110 rotate-3' 
-            : 'text-muted-foreground group-hover:text-blue-500 group-hover:scale-105'
+            ? 'text-primary' 
+            : 'text-muted-foreground hover:text-primary'
         }`} />;
     }
   };

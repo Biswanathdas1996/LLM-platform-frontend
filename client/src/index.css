@@ -44,9 +44,12 @@
   --shadow-tech: 0 8px 32px -4px rgb(59, 130, 246, 0.15), 0 4px 16px -2px rgb(59, 130, 246, 0.1);
   --shadow-glow: 0 0 20px -5px var(--primary);
   
-  /* Technical grid patterns */
-  --grid-pattern: radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.15) 1px, transparent 0);
+  /* Professional background patterns */
+  --grid-pattern: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
   --grid-size: 20px;
+  --bg-pattern-dots: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.02) 1px, transparent 0);
+  --bg-pattern-grid: linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
+  --bg-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
   
   /* Monospace font stack */
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
@@ -88,8 +91,11 @@
   --shadow-tech: 0 8px 32px -4px rgb(59, 130, 246, 0.25), 0 4px 16px -2px rgb(59, 130, 246, 0.2);
   --shadow-glow: 0 0 20px -5px hsl(217.2, 91.2%, 59.8%);
   
-  /* Dark mode grid pattern */
-  --grid-pattern: radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.2) 1px, transparent 0);
+  /* Dark mode professional patterns */
+  --grid-pattern: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+  --bg-pattern-dots: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
+  --bg-pattern-grid: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  --bg-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
 @layer base {
@@ -128,6 +134,29 @@
   .space-spacious {
     padding: var(--space-lg);
   }
+
+  /* Professional background utilities */
+  .bg-pattern-dots {
+    background-image: var(--bg-pattern-dots);
+    background-size: 20px 20px;
+  }
+  
+  .bg-pattern-grid {
+    background-image: var(--bg-pattern-grid);
+    background-size: 20px 20px;
+  }
+  
+  .bg-pattern-noise {
+    background-image: var(--bg-noise);
+  }
+  
+  .bg-professional {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+  }
+  
+  .bg-sidebar {
+    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+  }
   
   /* Technical grid background */
   .tech-grid {
@@ -160,12 +189,39 @@
   .modern-card {
     @apply bg-card border border-border rounded-lg relative overflow-hidden;
     box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.95);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .modern-card {
+    background-color: rgba(15, 23, 42, 0.95);
+  }
+  
+  .modern-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--bg-pattern-dots);
+    background-size: 16px 16px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .modern-card > * {
+    position: relative;
+    z-index: 1;
   }
   
   .modern-card:hover {
     @apply -translate-y-1;
     box-shadow: var(--shadow-lg);
+    background: hsl(var(--card));
+  }
+  
+  .modern-card:hover::before {
+    opacity: 0.5;
   }
   
   .compact-card {

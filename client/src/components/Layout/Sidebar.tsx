@@ -68,8 +68,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 border-r bg-card/30 min-h-screen hidden lg:block">
-      <nav className="p-4 space-y-6">
+    <aside className="w-64 border-r bg-sidebar bg-pattern-grid min-h-screen hidden lg:block relative">
+      <div className="absolute inset-0 bg-gradient-to-b from-card/50 via-card/30 to-muted/20" />
+      <nav className="p-4 space-y-6 relative z-10">
         {/* Primary Navigation */}
         <div className="space-y-1">
 
