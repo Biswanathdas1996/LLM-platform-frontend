@@ -13,7 +13,7 @@ import Playground from "@/pages/Playground";
 import Models from "@/pages/Models";
 import ExternalAPIs from "@/pages/ExternalAPIs";
 import CacheStatus from "@/pages/CacheStatus";
-
+import ApiDocumentation from "@/pages/ApiDocumentation";
 import ExternalLogs from "@/pages/ExternalLogs";
 import NotFound from "@/pages/not-found";
 
@@ -33,6 +33,7 @@ function AppContent() {
               <Route path="/models" component={Models} />
               <Route path="/external-apis" component={ExternalAPIs} />
               <Route path="/cache" component={CacheStatus} />
+              <Route path="/api-docs" component={ApiDocumentation} />
               <Route path="/external-logs" component={ExternalLogs} />
               <Route component={NotFound} />
             </Switch>

@@ -7,7 +7,8 @@ import {
   RotateCcw, 
   Trash2,
   FileText,
-  Server
+  Server,
+  BookOpen
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Playground', href: '/playground', icon: PlayCircle },
   { name: 'External APIs', href: '/external-apis', icon: Plug },
   { name: 'Cache Status', href: '/cache', icon: HardDrive },
+  { name: 'API Docs', href: '/api-docs', icon: BookOpen },
   { name: 'External Logs', href: '/external-logs', icon: Server },
 ];
 
