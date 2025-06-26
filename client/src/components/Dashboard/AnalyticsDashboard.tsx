@@ -236,35 +236,53 @@ export function AnalyticsDashboard() {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Log Level Distribution - Pie Chart */}
-        <Card className="modern-card-violet">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-violet-500" />
-              Log Level Distribution
+        {/* Log Level Distribution - Modern Pie Chart */}
+        <Card className="modern-card-violet group hover:shadow-2xl hover:shadow-violet-500/20 transition-all duration-500">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/30">
+                <BarChart3 className="h-5 w-5 text-violet-400" />
+              </div>
+              <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
+                Log Level Distribution
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-64">
+          <CardContent className="pt-0">
+            <div className="h-80 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-600/5 rounded-lg" />
               <ResponsivePie
                 data={analytics.pieData}
-                margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
-                innerRadius={0.5}
-                padAngle={0.7}
-                cornerRadius={3}
-                activeOuterRadiusOffset={8}
+                margin={{ top: 30, right: 90, bottom: 30, left: 90 }}
+                innerRadius={0.4}
+                padAngle={1.2}
+                cornerRadius={6}
+                activeOuterRadiusOffset={12}
                 colors={{ datum: 'data.color' }}
-                borderWidth={1}
-                borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
-                arcLinkLabelsSkipAngle={10}
+                borderWidth={2}
+                borderColor={{ from: 'color', modifiers: [['darker', 0.3]] }}
+                arcLinkLabelsSkipAngle={8}
                 arcLinkLabelsTextColor="#e2e8f0"
-                arcLinkLabelsThickness={2}
-                arcLabelsSkipAngle={10}
+                arcLinkLabelsThickness={3}
+                arcLinkLabelsColor={{ from: 'color' }}
+                arcLabelsSkipAngle={15}
                 arcLabelsTextColor="#1e293b"
+                enableArcLabels={true}
+                enableArcLinkLabels={true}
+                animate={true}
+                motionConfig="gentle"
                 theme={{
                   background: 'transparent',
-                  text: { fill: '#e2e8f0' },
-                  tooltip: { container: { background: '#1e293b', color: '#e2e8f0' } }
+                  text: { fill: '#e2e8f0', fontSize: 12, fontWeight: 500 },
+                  tooltip: { 
+                    container: { 
+                      background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', 
+                      color: '#f1f5f9',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }
+                  }
                 }}
               />
             </div>
