@@ -486,6 +486,10 @@ export default function ExternalLogs() {
           </div>
 
           <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchLogs} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh Logs
+            </Button>
             <Button variant="outline" onClick={() => exportLogs('all')}>
               <Download className="h-4 w-4 mr-2" />
               Export All
