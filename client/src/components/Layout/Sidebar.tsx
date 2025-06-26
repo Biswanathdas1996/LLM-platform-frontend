@@ -5,7 +5,8 @@ import {
   Plug, 
   HardDrive, 
   RotateCcw, 
-  Trash2 
+  Trash2,
+  FileText 
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Playground', href: '/playground', icon: PlayCircle },
   { name: 'External APIs', href: '/external-apis', icon: Plug },
   { name: 'Cache Status', href: '/cache', icon: HardDrive },
+  { name: 'Live Logs', href: '/logs', icon: FileText },
 ];
 
 export function Sidebar() {
