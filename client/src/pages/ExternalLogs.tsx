@@ -197,62 +197,80 @@ export default function ExternalLogs() {
           {log.endpoint && (
             <div>Endpoint: <span className="text-yellow-400">{log.endpoint}</span></div>
           )}
-          <div className="flex gap-4 flex-wrap">
+          
+          {/* Primary Request Details */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-1">
             {log.status_code && (
-              <span className={getStatusColor(log.status_code)}>
-                Status: {log.status_code}
-              </span>
+              <div className="bg-gray-800 px-2 py-1 rounded text-xs">
+                <span className="text-gray-400">Status:</span>
+                <span className={`ml-1 font-semibold ${getStatusColor(log.status_code)}`}>
+                  {log.status_code}
+                </span>
+              </div>
             )}
-            {log.response_time && (
-              <span className="text-blue-400">
-                Response: {log.response_time.toFixed(2)}ms
-              </span>
+            
+            {(log.duration_ms || log.response_time) && (
+              <div className="bg-gray-800 px-2 py-1 rounded text-xs">
+                <span className="text-gray-400">Duration:</span>
+                <span className="ml-1 font-semibold text-blue-400">
+                  {log.duration_ms ? `${log.duration_ms.toFixed(2)}ms` : `${log.response_time?.toFixed(2)}ms`}
+                </span>
+              </div>
             )}
-            {log.duration_ms && (
-              <span className="text-blue-400">
-                Duration: {log.duration_ms.toFixed(2)}ms
-              </span>
-            )}
+            
             {log.content_type && (
-              <span className="text-green-400">
-                Type: {log.content_type}
-              </span>
+              <div className="bg-gray-800 px-2 py-1 rounded text-xs">
+                <span className="text-gray-400">Content-Type:</span>
+                <span className="ml-1 font-semibold text-green-400">
+                  {log.content_type}
+                </span>
+              </div>
             )}
+            
             {log.content_length && (
-              <span className="text-orange-400">
-                Size: {log.content_length} bytes
-              </span>
+              <div className="bg-gray-800 px-2 py-1 rounded text-xs">
+                <span className="text-gray-400">Size:</span>
+                <span className="ml-1 font-semibold text-orange-400">
+                  {log.content_length} bytes
+                </span>
+              </div>
             )}
+            
             {log.remote_addr && (
-              <span className="text-purple-400">
-                From: {log.remote_addr}
-              </span>
+              <div className="bg-gray-800 px-2 py-1 rounded text-xs">
+                <span className="text-gray-400">From:</span>
+                <span className="ml-1 font-semibold text-purple-400">
+                  {log.remote_addr}
+                </span>
+              </div>
             )}
           </div>
           
-          {/* Request/Response Bodies */}
-          {(log.request_body || log.response_body) && (
-            <div className="mt-2 space-y-2">
-              {log.request_body && (
-                <details className="text-cyan-300">
-                  <summary className="cursor-pointer font-semibold">Request Body</summary>
-                  <pre className="bg-cyan-900/20 p-2 rounded text-cyan-200 mt-1 overflow-x-auto text-xs">
-                    {typeof log.request_body === 'string' 
-                      ? log.request_body 
-                      : JSON.stringify(log.request_body, null, 2)}
-                  </pre>
-                </details>
-              )}
-              {log.response_body && (
-                <details className="text-green-300">
-                  <summary className="cursor-pointer font-semibold">Response Body</summary>
-                  <pre className="bg-green-900/20 p-2 rounded text-green-200 mt-1 overflow-x-auto text-xs">
-                    {typeof log.response_body === 'string' 
-                      ? log.response_body 
-                      : JSON.stringify(log.response_body, null, 2)}
-                  </pre>
-                </details>
-              )}
+          {/* Response Body - Always Visible When Available */}
+          {log.response_body && (
+            <div className="mt-2">
+              <div className="bg-gray-800 p-3 rounded">
+                <div className="text-green-400 font-semibold text-xs mb-2">Response Body:</div>
+                <pre className="bg-green-900/20 p-2 rounded text-green-200 overflow-x-auto text-xs max-h-32 overflow-y-auto">
+                  {typeof log.response_body === 'string' 
+                    ? log.response_body 
+                    : JSON.stringify(log.response_body, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+          
+          {/* Request Body - Collapsible */}
+          {log.request_body && (
+            <div className="mt-2">
+              <details className="text-cyan-300">
+                <summary className="cursor-pointer font-semibold text-xs bg-gray-800 p-2 rounded">Request Body</summary>
+                <pre className="bg-cyan-900/20 p-2 rounded text-cyan-200 mt-1 overflow-x-auto text-xs max-h-32 overflow-y-auto">
+                  {typeof log.request_body === 'string' 
+                    ? log.request_body 
+                    : JSON.stringify(log.request_body, null, 2)}
+                </pre>
+              </details>
             </div>
           )}
         </div>
