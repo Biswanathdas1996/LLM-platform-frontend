@@ -7,25 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiError } from '@/components/ui/api-error';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter
-} from 'recharts';
+import { ResponsiveLine } from '@nivo/line';
+import { ResponsiveBar } from '@nivo/bar';
+import { ResponsivePie } from '@nivo/pie';
+import { ResponsiveStream } from '@nivo/stream';
+import { ResponsiveHeatMap } from '@nivo/heatmap';
+import { ResponsiveScatterPlot } from '@nivo/scatterplot';
 
 interface LogEntry {
   timestamp: string;
@@ -343,7 +330,7 @@ export default function ExternalLogs() {
     };
   };
 
-  // Analytics data processing functions
+  // Analytics data processing functions for Nivo charts
   const getTimeSeriesData = () => {
     if (!logsData) return [];
     
@@ -351,9 +338,8 @@ export default function ExternalLogs() {
     const groupedByHour = allLogs.reduce((acc, log) => {
       const hour = new Date(log.timestamp).toISOString().slice(0, 13) + ':00:00';
       if (!acc[hour]) {
-        acc[hour] = { time: hour, requests: 0, errors: 0, total: 0 };
+        acc[hour] = { x: hour, requests: 0, errors: 0 };
       }
-      acc[hour].total++;
       if (log.level === 'ERROR') {
         acc[hour].errors++;
       } else {
@@ -362,9 +348,38 @@ export default function ExternalLogs() {
       return acc;
     }, {} as Record<string, any>);
     
-    return Object.values(groupedByHour).sort((a: any, b: any) => 
-      new Date(a.time).getTime() - new Date(b.time).getTime()
+    const sortedData = Object.values(groupedByHour).sort((a: any, b: any) => 
+      new Date(a.x).getTime() - new Date(b.x).getTime()
     ).slice(-24); // Last 24 hours
+    
+    return [
+      {
+        id: 'requests',
+        color: '#10b981',
+        data: sortedData.map((d: any) => ({ 
+          x: new Date(d.x).toLocaleTimeString('en-IN', { 
+            timeZone: 'Asia/Kolkata', 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+          }), 
+          y: d.requests 
+        }))
+      },
+      {
+        id: 'errors',
+        color: '#ef4444',
+        data: sortedData.map((d: any) => ({ 
+          x: new Date(d.x).toLocaleTimeString('en-IN', { 
+            timeZone: 'Asia/Kolkata', 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+          }), 
+          y: d.errors 
+        }))
+      }
+    ];
   };
 
   const getResponseTimeData = () => {
@@ -372,13 +387,12 @@ export default function ExternalLogs() {
     
     return logsData.api_logs
       .filter(log => log.duration_ms && log.duration_ms > 0)
+      .slice(-50)
       .map((log, index) => ({
-        index: index + 1,
-        responseTime: log.duration_ms,
-        endpoint: log.endpoint || 'unknown',
-        timestamp: new Date(log.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false })
-      }))
-      .slice(-50); // Last 50 requests
+        x: index + 1,
+        y: log.duration_ms || 0,
+        endpoint: log.endpoint || 'unknown'
+      }));
   };
 
   const getStatusCodeDistribution = () => {
@@ -393,19 +407,20 @@ export default function ExternalLogs() {
     }, {} as Record<string, number>);
     
     const colors = {
-      '200': '#10b981', // green
-      '201': '#059669', // darker green
-      '400': '#f59e0b', // amber
-      '401': '#ef4444', // red
-      '403': '#dc2626', // darker red
-      '404': '#f97316', // orange
-      '500': '#7c2d12', // dark red
+      '200': '#10b981',
+      '201': '#059669', 
+      '400': '#f59e0b',
+      '401': '#ef4444',
+      '403': '#dc2626',
+      '404': '#f97316',
+      '500': '#7c2d12',
     };
     
     return Object.entries(statusCodes).map(([code, count]) => ({
-      name: `${code}`,
+      id: code,
+      label: `HTTP ${code}`,
       value: count,
-      fill: colors[code as keyof typeof colors] || '#6b7280'
+      color: colors[code as keyof typeof colors] || '#6b7280'
     }));
   };
 
@@ -433,9 +448,11 @@ export default function ExternalLogs() {
     
     return Object.values(endpointStats)
       .map((stat: any) => ({
-        ...stat,
+        endpoint: stat.endpoint,
         avgTime: stat.totalTime / stat.count,
-        minTime: stat.minTime === Infinity ? 0 : stat.minTime
+        count: stat.count,
+        minTime: stat.minTime === Infinity ? 0 : stat.minTime,
+        maxTime: stat.maxTime
       }))
       .sort((a: any, b: any) => b.count - a.count)
       .slice(0, 10); // Top 10 endpoints
@@ -451,12 +468,35 @@ export default function ExternalLogs() {
       return acc;
     }, {} as Record<string, number>);
     
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    return Object.keys(methods).map(method => ({
+      method,
+      count: methods[method],
+      color: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
+    }));
+  };
+
+  const getHourlyHeatmapData = () => {
+    if (!logsData) return [];
     
-    return Object.entries(methods).map(([method, count], index) => ({
-      name: method,
-      value: count,
-      fill: colors[index % colors.length]
+    const allLogs = [...logsData.api_logs, ...logsData.error_logs];
+    const dayHourMatrix: Record<string, Record<string, number>> = {};
+    
+    allLogs.forEach(log => {
+      const date = new Date(log.timestamp);
+      const day = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short' });
+      const hour = date.getHours().toString().padStart(2, '0');
+      
+      if (!dayHourMatrix[day]) dayHourMatrix[day] = {};
+      dayHourMatrix[day][hour] = (dayHourMatrix[day][hour] || 0) + 1;
+    });
+    
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days.map(day => ({
+      id: day,
+      data: Array.from({ length: 24 }, (_, hour) => ({
+        x: hour,
+        y: dayHourMatrix[day]?.[hour.toString().padStart(2, '0')] || 0
+      }))
     }));
   };
 
@@ -668,95 +708,189 @@ export default function ExternalLogs() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={getTimeSeriesData()}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis 
-                      dataKey="time" 
-                      stroke="#9ca3af"
-                      tickFormatter={(value) => new Date(value).toLocaleTimeString('en-IN', { 
-                        timeZone: 'Asia/Kolkata', 
-                        hour: '2-digit', 
-                        minute: '2-digit',
-                        hour12: false 
-                      })}
-                    />
-                    <YAxis stroke="#9ca3af" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1f2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                        color: '#f9fafb'
-                      }}
-                      labelFormatter={(value) => new Date(value).toLocaleString('en-IN', { 
-                        timeZone: 'Asia/Kolkata'
-                      })}
-                    />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="requests"
-                      stackId="1"
-                      stroke="#10b981"
-                      fill="#10b981"
-                      fillOpacity={0.6}
-                      name="Successful Requests"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="errors"
-                      stackId="1"
-                      stroke="#ef4444"
-                      fill="#ef4444"
-                      fillOpacity={0.6}
-                      name="Errors"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div style={{ height: '350px' }}>
+                  <ResponsiveLine
+                    data={getTimeSeriesData()}
+                    margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+                    xScale={{ type: 'point' }}
+                    yScale={{
+                      type: 'linear',
+                      min: 'auto',
+                      max: 'auto',
+                      stacked: false,
+                    }}
+                    axisTop={null}
+                    axisRight={null}
+                    axisBottom={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: -45,
+                      legend: 'Time (IST)',
+                      legendOffset: 36,
+                      legendPosition: 'middle'
+                    }}
+                    axisLeft={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Count',
+                      legendOffset: -40,
+                      legendPosition: 'middle'
+                    }}
+                    enableArea={true}
+                    areaOpacity={0.3}
+                    pointSize={6}
+                    pointColor={{ theme: 'background' }}
+                    pointBorderWidth={2}
+                    pointBorderColor={{ from: 'serieColor' }}
+                    pointLabel="y"
+                    pointLabelYOffset={-12}
+                    useMesh={true}
+                    legends={[
+                      {
+                        anchor: 'bottom-right',
+                        direction: 'column',
+                        justify: false,
+                        translateX: 100,
+                        translateY: 0,
+                        itemsSpacing: 0,
+                        itemDirection: 'left-to-right',
+                        itemWidth: 80,
+                        itemHeight: 20,
+                        itemOpacity: 0.75,
+                        symbolSize: 12,
+                        symbolShape: 'circle',
+                        symbolBorderColor: 'rgba(0, 0, 0, .5)',
+                        effects: [
+                          {
+                            on: 'hover',
+                            style: {
+                              itemBackground: 'rgba(0, 0, 0, .03)',
+                              itemOpacity: 1
+                            }
+                          }
+                        ]
+                      }
+                    ]}
+                    theme={{
+                      background: 'transparent',
+                      text: {
+                        fontSize: 11,
+                        fill: '#9ca3af',
+                      },
+                      axis: {
+                        domain: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          }
+                        },
+                        legend: {
+                          text: {
+                            fontSize: 12,
+                            fill: '#9ca3af',
+                          }
+                        },
+                        ticks: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          },
+                          text: {
+                            fontSize: 11,
+                            fill: '#9ca3af',
+                          }
+                        }
+                      },
+                      grid: {
+                        line: {
+                          stroke: '#374151',
+                          strokeWidth: 1
+                        }
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
-            {/* Response Time Trends */}
+            {/* Response Time Scatter Plot */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-purple-500" />
-                  Response Time Trends
+                  Response Time Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={getResponseTimeData()}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis 
-                      dataKey="timestamp" 
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 12 }}
-                    />
-                    <YAxis 
-                      stroke="#9ca3af"
-                      label={{ value: 'Response Time (ms)', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1f2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                        color: '#f9fafb'
-                      }}
-                      formatter={(value, name) => [`${value}ms`, 'Response Time']}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="responseTime" 
-                      stroke="#8b5cf6" 
-                      strokeWidth={2}
-                      dot={{ fill: '#8b5cf6', r: 3 }}
-                      activeDot={{ r: 5, fill: '#a855f7' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div style={{ height: '300px' }}>
+                  <ResponsiveScatterPlot
+                    data={[{
+                      id: 'Response Times',
+                      data: getResponseTimeData()
+                    }]}
+                    margin={{ top: 60, right: 140, bottom: 70, left: 90 }}
+                    xScale={{ type: 'linear', min: 'auto', max: 'auto' }}
+                    yScale={{ type: 'linear', min: 0, max: 'auto' }}
+                    colors={{ scheme: 'category10' }}
+                    blendMode="multiply"
+                    axisTop={null}
+                    axisRight={null}
+                    axisBottom={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Request Index',
+                      legendPosition: 'middle',
+                      legendOffset: 46
+                    }}
+                    axisLeft={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Response Time (ms)',
+                      legendPosition: 'middle',
+                      legendOffset: -60
+                    }}
+                    theme={{
+                      background: 'transparent',
+                      text: {
+                        fontSize: 11,
+                        fill: '#9ca3af',
+                      },
+                      axis: {
+                        domain: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          }
+                        },
+                        legend: {
+                          text: {
+                            fontSize: 12,
+                            fill: '#9ca3af',
+                          }
+                        },
+                        ticks: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          },
+                          text: {
+                            fontSize: 11,
+                            fill: '#9ca3af',
+                          }
+                        }
+                      },
+                      grid: {
+                        line: {
+                          stroke: '#374151',
+                          strokeWidth: 1
+                        }
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -769,31 +903,72 @@ export default function ExternalLogs() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={getStatusCodeDistribution()}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
-                      labelLine={false}
-                    >
-                      {getStatusCodeDistribution().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1f2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                        color: '#f9fafb'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div style={{ height: '300px' }}>
+                  <ResponsivePie
+                    data={getStatusCodeDistribution()}
+                    margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+                    innerRadius={0.5}
+                    padAngle={0.7}
+                    cornerRadius={3}
+                    activeOuterRadiusOffset={8}
+                    borderWidth={1}
+                    borderColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          0.2
+                        ]
+                      ]
+                    }}
+                    arcLinkLabelsSkipAngle={10}
+                    arcLinkLabelsTextColor="#9ca3af"
+                    arcLinkLabelsThickness={2}
+                    arcLinkLabelsColor={{ from: 'color' }}
+                    arcLabelsSkipAngle={10}
+                    arcLabelsTextColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          2
+                        ]
+                      ]
+                    }}
+                    legends={[
+                      {
+                        anchor: 'bottom',
+                        direction: 'row',
+                        justify: false,
+                        translateX: 0,
+                        translateY: 56,
+                        itemsSpacing: 0,
+                        itemWidth: 100,
+                        itemHeight: 18,
+                        itemTextColor: '#9ca3af',
+                        itemDirection: 'left-to-right',
+                        itemOpacity: 1,
+                        symbolSize: 18,
+                        symbolShape: 'circle',
+                        effects: [
+                          {
+                            on: 'hover',
+                            style: {
+                              itemTextColor: '#ffffff'
+                            }
+                          }
+                        ]
+                      }
+                    ]}
+                    theme={{
+                      background: 'transparent',
+                      text: {
+                        fontSize: 11,
+                        fill: '#9ca3af',
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -802,30 +977,121 @@ export default function ExternalLogs() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Server className="h-5 w-5 text-blue-500" />
-                  HTTP Methods
+                  HTTP Methods Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={getMethodDistribution()}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="name" stroke="#9ca3af" />
-                    <YAxis stroke="#9ca3af" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1f2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                        color: '#f9fafb'
-                      }}
-                    />
-                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                      {getMethodDistribution().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ height: '300px' }}>
+                  <ResponsiveBar
+                    data={getMethodDistribution()}
+                    keys={['count']}
+                    indexBy="method"
+                    margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+                    padding={0.3}
+                    valueScale={{ type: 'linear' }}
+                    indexScale={{ type: 'band', round: true }}
+                    colors={{ scheme: 'nivo' }}
+                    borderColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          1.6
+                        ]
+                      ]
+                    }}
+                    axisTop={null}
+                    axisRight={null}
+                    axisBottom={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'HTTP Method',
+                      legendPosition: 'middle',
+                      legendOffset: 32
+                    }}
+                    axisLeft={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Request Count',
+                      legendPosition: 'middle',
+                      legendOffset: -40
+                    }}
+                    labelSkipWidth={12}
+                    labelSkipHeight={12}
+                    labelTextColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          1.6
+                        ]
+                      ]
+                    }}
+                    legends={[
+                      {
+                        dataFrom: 'keys',
+                        anchor: 'bottom-right',
+                        direction: 'column',
+                        justify: false,
+                        translateX: 120,
+                        translateY: 0,
+                        itemsSpacing: 2,
+                        itemWidth: 100,
+                        itemHeight: 20,
+                        itemDirection: 'left-to-right',
+                        itemOpacity: 0.85,
+                        symbolSize: 20,
+                        effects: [
+                          {
+                            on: 'hover',
+                            style: {
+                              itemOpacity: 1
+                            }
+                          }
+                        ]
+                      }
+                    ]}
+                    theme={{
+                      background: 'transparent',
+                      text: {
+                        fontSize: 11,
+                        fill: '#9ca3af',
+                      },
+                      axis: {
+                        domain: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          }
+                        },
+                        legend: {
+                          text: {
+                            fontSize: 12,
+                            fill: '#9ca3af',
+                          }
+                        },
+                        ticks: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          },
+                          text: {
+                            fontSize: 11,
+                            fill: '#9ca3af',
+                          }
+                        }
+                      },
+                      grid: {
+                        line: {
+                          stroke: '#374151',
+                          strokeWidth: 1
+                        }
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -834,37 +1100,209 @@ export default function ExternalLogs() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-orange-500" />
-                  Top Endpoint Performance
+                  Endpoint Performance Analysis
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={getEndpointPerformance()} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis type="number" stroke="#9ca3af" />
-                    <YAxis 
-                      dataKey="endpoint" 
-                      type="category" 
-                      stroke="#9ca3af"
-                      tick={{ fontSize: 12 }}
-                      width={80}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1f2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '8px',
-                        color: '#f9fafb'
-                      }}
-                      formatter={(value, name) => {
-                        if (name === 'avgTime') return [`${Number(value).toFixed(2)}ms`, 'Avg Response Time'];
-                        if (name === 'count') return [value, 'Request Count'];
-                        return [value, name];
-                      }}
-                    />
-                    <Bar dataKey="avgTime" fill="#f59e0b" radius={[0, 4, 4, 0]} name="avgTime" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ height: '300px' }}>
+                  <ResponsiveBar
+                    data={getEndpointPerformance()}
+                    keys={['avgTime']}
+                    indexBy="endpoint"
+                    margin={{ top: 50, right: 130, bottom: 120, left: 80 }}
+                    padding={0.3}
+                    layout="vertical"
+                    valueScale={{ type: 'linear' }}
+                    indexScale={{ type: 'band', round: true }}
+                    colors={{ scheme: 'category10' }}
+                    borderColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          1.6
+                        ]
+                      ]
+                    }}
+                    axisTop={null}
+                    axisRight={null}
+                    axisBottom={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Average Response Time (ms)',
+                      legendPosition: 'middle',
+                      legendOffset: 32
+                    }}
+                    axisLeft={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Endpoint',
+                      legendPosition: 'middle',
+                      legendOffset: -60
+                    }}
+                    labelSkipWidth={12}
+                    labelSkipHeight={12}
+                    labelTextColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          1.6
+                        ]
+                      ]
+                    }}
+                    theme={{
+                      background: 'transparent',
+                      text: {
+                        fontSize: 11,
+                        fill: '#9ca3af',
+                      },
+                      axis: {
+                        domain: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          }
+                        },
+                        legend: {
+                          text: {
+                            fontSize: 12,
+                            fill: '#9ca3af',
+                          }
+                        },
+                        ticks: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          },
+                          text: {
+                            fontSize: 11,
+                            fill: '#9ca3af',
+                          }
+                        }
+                      },
+                      grid: {
+                        line: {
+                          stroke: '#374151',
+                          strokeWidth: 1
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Activity Heatmap */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-purple-500" />
+                  Activity Heatmap (Day vs Hour)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div style={{ height: '300px' }}>
+                  <ResponsiveHeatMap
+                    data={getHourlyHeatmapData()}
+                    margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
+                    valueFormat=">-.2s"
+                    axisTop={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: -90,
+                      legend: '',
+                      legendOffset: 46
+                    }}
+                    axisRight={null}
+                    axisBottom={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: -90,
+                      legend: 'Hour of Day',
+                      legendPosition: 'middle',
+                      legendOffset: 46
+                    }}
+                    axisLeft={{
+                      tickSize: 5,
+                      tickPadding: 5,
+                      tickRotation: 0,
+                      legend: 'Day of Week',
+                      legendPosition: 'middle',
+                      legendOffset: -72
+                    }}
+                    colors={{
+                      type: 'diverging',
+                      scheme: 'red_yellow_blue',
+                      divergeAt: 0.5,
+                      minValue: 0,
+                      maxValue: 'auto'
+                    }}
+                    emptyColor="#555555"
+                    borderRadius={2}
+                    borderWidth={2}
+                    borderColor={{
+                      from: 'color',
+                      modifiers: [
+                        [
+                          'darker',
+                          0.8
+                        ]
+                      ]
+                    }}
+                    legends={[
+                      {
+                        anchor: 'bottom',
+                        translateX: 0,
+                        translateY: 30,
+                        length: 400,
+                        thickness: 8,
+                        direction: 'row',
+                        tickPosition: 'after',
+                        tickSize: 3,
+                        tickSpacing: 4,
+                        tickOverlap: false,
+                        tickFormat: '>-.2s',
+                        title: 'Request Count →',
+                        titleAlign: 'start',
+                        titleOffset: 4
+                      }
+                    ]}
+                    theme={{
+                      background: 'transparent',
+                      text: {
+                        fontSize: 11,
+                        fill: '#9ca3af',
+                      },
+                      axis: {
+                        domain: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          }
+                        },
+                        legend: {
+                          text: {
+                            fontSize: 12,
+                            fill: '#9ca3af',
+                          }
+                        },
+                        ticks: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 1
+                          },
+                          text: {
+                            fontSize: 11,
+                            fill: '#9ca3af',
+                          }
+                        }
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -884,7 +1322,6 @@ export default function ExternalLogs() {
                       <th className="text-right p-2 text-gray-400">Avg Time (ms)</th>
                       <th className="text-right p-2 text-gray-400">Min Time (ms)</th>
                       <th className="text-right p-2 text-gray-400">Max Time (ms)</th>
-                      <th className="text-right p-2 text-gray-400">Total Time (ms)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -895,7 +1332,6 @@ export default function ExternalLogs() {
                         <td className="p-2 text-right text-yellow-400">{endpoint.avgTime.toFixed(2)}</td>
                         <td className="p-2 text-right text-gray-300">{endpoint.minTime.toFixed(2)}</td>
                         <td className="p-2 text-right text-red-400">{endpoint.maxTime.toFixed(2)}</td>
-                        <td className="p-2 text-right text-purple-400">{endpoint.totalTime.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
