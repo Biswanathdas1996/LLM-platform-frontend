@@ -52,7 +52,7 @@ export function StatsGrid() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
       {statsData.map((item) => {
         const Icon = item.icon;
         const value = stats[item.key as keyof typeof stats];
@@ -60,32 +60,47 @@ export function StatsGrid() {
                         (item.key === 'cachedModels' && cacheError);
         
         return (
-          <Card key={item.name} className={`bg-white dark:bg-slate-800 border ${
+          <Card key={item.name} className={`modern-card group ${
             hasError 
-              ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20' 
-              : 'border-slate-200 dark:border-slate-700'
+              ? 'border-amber-200/50 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/10' 
+              : ''
           }`}>
             <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Icon className={`h-6 w-6 ${hasError ? 'text-amber-600 dark:text-amber-400' : item.color}`} />
-                </div>
-                <div className="ml-4">
-                  <p className={`text-sm font-medium ${
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className={`p-3 rounded-xl transition-all duration-300 group-hover:scale-110 ${
                     hasError 
-                      ? 'text-amber-800 dark:text-amber-200' 
-                      : 'text-slate-600 dark:text-slate-400'
+                      ? 'bg-amber-100 dark:bg-amber-900/30' 
+                      : 'bg-muted/50 group-hover:bg-primary/10'
                   }`}>
-                    {item.name}
-                  </p>
-                  <p className={`text-2xl font-bold ${
-                    hasError 
-                      ? 'text-amber-900 dark:text-amber-100' 
-                      : 'text-slate-900 dark:text-white'
-                  }`}>
-                    {hasError ? '—' : value}
-                  </p>
+                    <Icon className={`h-6 w-6 transition-colors duration-300 ${
+                      hasError 
+                        ? 'text-amber-600 dark:text-amber-400' 
+                        : `${item.color} group-hover:text-primary`
+                    }`} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-medium transition-colors duration-300 ${
+                      hasError 
+                        ? 'text-amber-800 dark:text-amber-200' 
+                        : 'text-muted-foreground group-hover:text-foreground'
+                    }`}>
+                      {item.name}
+                    </p>
+                    <p className={`text-3xl font-bold transition-all duration-300 ${
+                      hasError 
+                        ? 'text-amber-900 dark:text-amber-100' 
+                        : 'text-foreground group-hover:scale-105'
+                    }`}>
+                      {hasError ? '—' : value.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
+                {!hasError && (
+                  <div className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <TrendingUp className="h-4 w-4" />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

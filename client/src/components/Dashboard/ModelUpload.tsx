@@ -72,18 +72,21 @@ export function ModelUpload() {
   };
 
   return (
-    <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
+    <Card className="modern-card">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-bold text-foreground flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <CloudUpload className="h-5 w-5 text-primary" />
+          </div>
           Upload Model
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer group ${
             dragActive
-              ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-              : 'border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500'
+              ? 'border-primary bg-primary/5 scale-[1.02]'
+              : 'border-border hover:border-primary/50 hover:bg-muted/30'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -91,16 +94,29 @@ export function ModelUpload() {
           onDrop={handleDrop}
           onClick={() => document.getElementById('file-upload')?.click()}
         >
-          <CloudUpload className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500 mb-4" />
-          <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
-            Drop your model file here
-          </p>
-          <p className="text-slate-600 dark:text-slate-400 mb-4">
-            or click to browse
-          </p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Supports .gguf, .bin files up to 10GB
-          </p>
+          <div className="relative">
+            <CloudUpload className={`mx-auto h-16 w-16 mb-6 transition-all duration-300 ${
+              dragActive 
+                ? 'text-primary scale-110' 
+                : 'text-muted-foreground group-hover:text-primary group-hover:scale-110'
+            }`} />
+            {dragActive && (
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl" />
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-lg font-semibold text-foreground">
+              {dragActive ? 'Drop your model file here' : 'Upload Model File'}
+            </p>
+            <p className="text-muted-foreground">
+              {dragActive ? 'Release to upload' : 'Drag & drop or click to browse'}
+            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 text-xs text-muted-foreground">
+              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Supports .gguf, .bin files up to 10GB
+            </div>
+          </div>
           
           <input
             id="file-upload"
@@ -112,11 +128,12 @@ export function ModelUpload() {
         </div>
 
         {uploadMutation.isPending && (
-          <div className="mt-4">
-            <Progress value={uploadProgress} className="w-full" />
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-              Uploading model...
-            </p>
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Uploading model...</span>
+              <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+            </div>
+            <Progress value={uploadProgress} className="w-full h-2" />
           </div>
         )}
       </CardContent>
