@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter } from 'lucide-react';
+import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter, TrendingUp, Activity, Clock, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,25 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiError } from '@/components/ui/api-error';
+import { 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  BarChart, 
+  Bar, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter
+} from 'recharts';
 
 interface LogEntry {
   timestamp: string;
@@ -45,7 +64,7 @@ export default function ExternalLogs() {
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
 
-  const [activeTab, setActiveTab] = useState('api');
+  const [activeTab, setActiveTab] = useState('analytics');
 
   const fetchLogs = async () => {
     setIsLoading(true);
@@ -324,6 +343,123 @@ export default function ExternalLogs() {
     };
   };
 
+  // Analytics data processing functions
+  const getTimeSeriesData = () => {
+    if (!logsData) return [];
+    
+    const allLogs = [...logsData.api_logs, ...logsData.error_logs];
+    const groupedByHour = allLogs.reduce((acc, log) => {
+      const hour = new Date(log.timestamp).toISOString().slice(0, 13) + ':00:00';
+      if (!acc[hour]) {
+        acc[hour] = { time: hour, requests: 0, errors: 0, total: 0 };
+      }
+      acc[hour].total++;
+      if (log.level === 'ERROR') {
+        acc[hour].errors++;
+      } else {
+        acc[hour].requests++;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+    
+    return Object.values(groupedByHour).sort((a: any, b: any) => 
+      new Date(a.time).getTime() - new Date(b.time).getTime()
+    ).slice(-24); // Last 24 hours
+  };
+
+  const getResponseTimeData = () => {
+    if (!logsData) return [];
+    
+    return logsData.api_logs
+      .filter(log => log.duration_ms && log.duration_ms > 0)
+      .map((log, index) => ({
+        index: index + 1,
+        responseTime: log.duration_ms,
+        endpoint: log.endpoint || 'unknown',
+        timestamp: new Date(log.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false })
+      }))
+      .slice(-50); // Last 50 requests
+  };
+
+  const getStatusCodeDistribution = () => {
+    if (!logsData) return [];
+    
+    const statusCodes = logsData.api_logs.reduce((acc, log) => {
+      if (log.status_code) {
+        const code = log.status_code.toString();
+        acc[code] = (acc[code] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const colors = {
+      '200': '#10b981', // green
+      '201': '#059669', // darker green
+      '400': '#f59e0b', // amber
+      '401': '#ef4444', // red
+      '403': '#dc2626', // darker red
+      '404': '#f97316', // orange
+      '500': '#7c2d12', // dark red
+    };
+    
+    return Object.entries(statusCodes).map(([code, count]) => ({
+      name: `${code}`,
+      value: count,
+      fill: colors[code as keyof typeof colors] || '#6b7280'
+    }));
+  };
+
+  const getEndpointPerformance = () => {
+    if (!logsData) return [];
+    
+    const endpointStats = logsData.api_logs.reduce((acc, log) => {
+      if (log.endpoint && log.duration_ms) {
+        if (!acc[log.endpoint]) {
+          acc[log.endpoint] = { 
+            endpoint: log.endpoint, 
+            totalTime: 0, 
+            count: 0, 
+            maxTime: 0,
+            minTime: Infinity 
+          };
+        }
+        acc[log.endpoint].totalTime += log.duration_ms;
+        acc[log.endpoint].count++;
+        acc[log.endpoint].maxTime = Math.max(acc[log.endpoint].maxTime, log.duration_ms);
+        acc[log.endpoint].minTime = Math.min(acc[log.endpoint].minTime, log.duration_ms);
+      }
+      return acc;
+    }, {} as Record<string, any>);
+    
+    return Object.values(endpointStats)
+      .map((stat: any) => ({
+        ...stat,
+        avgTime: stat.totalTime / stat.count,
+        minTime: stat.minTime === Infinity ? 0 : stat.minTime
+      }))
+      .sort((a: any, b: any) => b.count - a.count)
+      .slice(0, 10); // Top 10 endpoints
+  };
+
+  const getMethodDistribution = () => {
+    if (!logsData) return [];
+    
+    const methods = logsData.api_logs.reduce((acc, log) => {
+      if (log.method) {
+        acc[log.method] = (acc[log.method] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    
+    return Object.entries(methods).map(([method, count], index) => ({
+      name: method,
+      value: count,
+      fill: colors[index % colors.length]
+    }));
+  };
+
   const stats = getStats();
   const filteredApiLogs = logsData ? filterLogs(logsData.api_logs) : [];
   const filteredErrorLogs = logsData ? filterLogs(logsData.error_logs) : [];
@@ -506,7 +642,11 @@ export default function ExternalLogs() {
 
       {/* Logs Display */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
           <TabsTrigger value="api" className="flex items-center gap-2">
             <Server className="h-4 w-4" />
             API Logs ({filteredApiLogs.length})
@@ -516,6 +656,254 @@ export default function ExternalLogs() {
             Error Logs ({filteredErrorLogs.length})
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Request Volume Over Time */}
+            <Card className="col-span-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  Request Volume Over Time (Last 24 Hours)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={getTimeSeriesData()}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="#9ca3af"
+                      tickFormatter={(value) => new Date(value).toLocaleTimeString('en-IN', { 
+                        timeZone: 'Asia/Kolkata', 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false 
+                      })}
+                    />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#f9fafb'
+                      }}
+                      labelFormatter={(value) => new Date(value).toLocaleString('en-IN', { 
+                        timeZone: 'Asia/Kolkata'
+                      })}
+                    />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="requests"
+                      stackId="1"
+                      stroke="#10b981"
+                      fill="#10b981"
+                      fillOpacity={0.6}
+                      name="Successful Requests"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="errors"
+                      stackId="1"
+                      stroke="#ef4444"
+                      fill="#ef4444"
+                      fillOpacity={0.6}
+                      name="Errors"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Response Time Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-purple-500" />
+                  Response Time Trends
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={getResponseTimeData()}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis 
+                      dataKey="timestamp" 
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis 
+                      stroke="#9ca3af"
+                      label={{ value: 'Response Time (ms)', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#f9fafb'
+                      }}
+                      formatter={(value, name) => [`${value}ms`, 'Response Time']}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="responseTime" 
+                      stroke="#8b5cf6" 
+                      strokeWidth={2}
+                      dot={{ fill: '#8b5cf6', r: 3 }}
+                      activeDot={{ r: 5, fill: '#a855f7' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Status Code Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-green-500" />
+                  HTTP Status Codes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={getStatusCodeDistribution()}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(1)}%)`}
+                      labelLine={false}
+                    >
+                      {getStatusCodeDistribution().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#f9fafb'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* HTTP Methods Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-blue-500" />
+                  HTTP Methods
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={getMethodDistribution()}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="name" stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#f9fafb'
+                      }}
+                    />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                      {getMethodDistribution().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Endpoint Performance Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-orange-500" />
+                  Top Endpoint Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={getEndpointPerformance()} layout="horizontal">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis type="number" stroke="#9ca3af" />
+                    <YAxis 
+                      dataKey="endpoint" 
+                      type="category" 
+                      stroke="#9ca3af"
+                      tick={{ fontSize: 12 }}
+                      width={80}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#f9fafb'
+                      }}
+                      formatter={(value, name) => {
+                        if (name === 'avgTime') return [`${Number(value).toFixed(2)}ms`, 'Avg Response Time'];
+                        if (name === 'count') return [value, 'Request Count'];
+                        return [value, name];
+                      }}
+                    />
+                    <Bar dataKey="avgTime" fill="#f59e0b" radius={[0, 4, 4, 0]} name="avgTime" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Performance Metrics Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Detailed Endpoint Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left p-2 text-gray-400">Endpoint</th>
+                      <th className="text-right p-2 text-gray-400">Requests</th>
+                      <th className="text-right p-2 text-gray-400">Avg Time (ms)</th>
+                      <th className="text-right p-2 text-gray-400">Min Time (ms)</th>
+                      <th className="text-right p-2 text-gray-400">Max Time (ms)</th>
+                      <th className="text-right p-2 text-gray-400">Total Time (ms)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getEndpointPerformance().map((endpoint, index) => (
+                      <tr key={index} className="border-b border-gray-800 hover:bg-gray-900/50">
+                        <td className="p-2 font-mono text-blue-400">{endpoint.endpoint}</td>
+                        <td className="p-2 text-right text-green-400">{endpoint.count}</td>
+                        <td className="p-2 text-right text-yellow-400">{endpoint.avgTime.toFixed(2)}</td>
+                        <td className="p-2 text-right text-gray-300">{endpoint.minTime.toFixed(2)}</td>
+                        <td className="p-2 text-right text-red-400">{endpoint.maxTime.toFixed(2)}</td>
+                        <td className="p-2 text-right text-purple-400">{endpoint.totalTime.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="api" className="space-y-4">
           <Card>
