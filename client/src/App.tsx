@@ -27,7 +27,7 @@ function AppContent() {
         <Sidebar />
         <main className="flex-1 overflow-y-auto bg-professional bg-pattern-dots relative z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-transparent to-muted/10" />
-          <div className="container mx-auto px-4 pt-4 pb-0 max-w-7xl relative z-1 bg-professional-content">
+          <div className="container mx-auto px-4 pt-4 pb-0 max-w-7xl relative z-1 bg-professional-content mt-[50px] mb-[50px]">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/playground" component={Playground} />
