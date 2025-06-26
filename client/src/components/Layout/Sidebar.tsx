@@ -106,12 +106,12 @@ export function Sidebar() {
         </div>
         
         {/* Quick Actions */}
-        <div className="space-y-1.5 pt-2 mt-1 border-t border-border/50" style={{ flexShrink: 0, overflow: 'hidden' }}>
-          <h3 className="text-xs font-medium text-muted-foreground px-3 mb-1 uppercase tracking-wider">Quick Actions</h3>
+        <div className="space-y-2 pt-3 mt-2 border-t border-primary/20 bg-gradient-to-b from-primary/5 to-transparent rounded-lg p-2" style={{ flexShrink: 0, overflow: 'hidden' }}>
+          <h3 className="text-xs font-semibold text-primary px-2 mb-2 uppercase tracking-wider">Quick Actions</h3>
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 hover:from-emerald-500/20 hover:to-cyan-500/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+            className="w-full justify-start bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 hover:from-emerald-500/25 hover:to-cyan-500/25 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-200 hover:shadow-sm"
             onClick={handleSync}
             disabled={syncMutation.isPending}
           >
@@ -122,7 +122,7 @@ export function Sidebar() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start bg-gradient-to-r from-orange-500/10 to-red-500/10 hover:from-orange-500/20 hover:to-red-500/20 border-orange-500/30 text-orange-600 dark:text-orange-400"
+            className="w-full justify-start bg-gradient-to-r from-orange-500/15 to-red-500/15 hover:from-orange-500/25 hover:to-red-500/25 border-orange-500/40 text-orange-700 dark:text-orange-300 hover:text-orange-800 dark:hover:text-orange-200 transition-all duration-200 hover:shadow-sm"
             onClick={handleClearCache}
             disabled={clearCacheMutation.isPending}
           >
