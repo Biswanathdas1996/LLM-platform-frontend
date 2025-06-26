@@ -16,6 +16,9 @@ import CacheStatus from "@/pages/CacheStatus";
 import ApiDocumentation from "@/pages/ApiDocumentation";
 import ExternalLogs from "@/pages/ExternalLogs";
 import Analytics from "@/pages/Analytics";
+import HuggingFaceModels from "@/pages/HuggingFaceModels";
+import HuggingFaceGeneration from "@/pages/HuggingFaceGeneration";
+import HuggingFaceStats from "@/pages/HuggingFaceStats";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -38,6 +41,9 @@ function AppContent() {
               <Route path="/api-docs" component={ApiDocumentation} />
               <Route path="/external-logs" component={ExternalLogs} />
               <Route path="/analytics" component={Analytics} />
+              <Route path="/huggingface/models" component={HuggingFaceModels} />
+              <Route path="/huggingface/generation" component={HuggingFaceGeneration} />
+              <Route path="/huggingface/stats" component={HuggingFaceStats} />
               <Route component={NotFound} />
             </Switch>
           </div>
