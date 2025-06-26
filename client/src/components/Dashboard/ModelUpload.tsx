@@ -126,28 +126,28 @@ export function ModelUpload() {
   const getUploadIcon = () => {
     switch (uploadState) {
       case 'uploading':
-        return <Loader2 className="h-16 w-16 animate-spin text-blue-500" />;
+        return <Loader2 className="h-8 w-8 sm:h-12 sm:w-12 animate-spin text-blue-500" />;
       case 'success':
-        return <Check className="h-16 w-16 text-emerald-500" />;
+        return <Check className="h-8 w-8 sm:h-12 sm:w-12 text-emerald-500" />;
       case 'error':
-        return <AlertCircle className="h-16 w-16 text-red-500" />;
+        return <AlertCircle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500" />;
       default:
-        return <CloudUpload className={`h-16 w-16 transition-all duration-500 ${
+        return <CloudUpload className={`h-8 w-8 sm:h-12 sm:w-12 transition-all duration-300 ${
           dragActive 
-            ? 'text-blue-500 scale-125 rotate-6' 
-            : 'text-muted-foreground group-hover:text-blue-500 group-hover:scale-110'
+            ? 'text-blue-500 scale-110 rotate-3' 
+            : 'text-muted-foreground group-hover:text-blue-500 group-hover:scale-105'
         }`} />;
     }
   };
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background border border-border/50 hover:border-blue-500/30 transition-all duration-500 group shadow-lg hover:shadow-xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <Card className="relative overflow-hidden border border-border/50 hover:border-blue-500/30 transition-all duration-300 group">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/3 via-purple-500/3 to-teal-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       
-      <CardHeader className="pb-4 relative z-10">
-        <CardTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300 relative overflow-hidden">
-            <Upload className="h-5 w-5 text-white relative z-10" />
+      <CardHeader className="pb-3 relative z-10">
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+            <Upload className="h-4 w-4 text-white" />
             <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
           Model Upload
@@ -173,9 +173,9 @@ export function ModelUpload() {
       </CardHeader>
       <CardContent className="relative z-10">
         <div
-          className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all duration-500 cursor-pointer relative overflow-hidden backdrop-blur-sm ${
+          className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-300 cursor-pointer relative overflow-hidden ${
             dragActive
-              ? 'border-blue-500 bg-blue-500/10 scale-[1.02] shadow-2xl shadow-blue-500/20'
+              ? 'border-blue-500 bg-blue-500/10 scale-[1.01] shadow-lg shadow-blue-500/20'
               : uploadState === 'uploading'
               ? 'border-blue-400 bg-blue-400/5'
               : uploadState === 'success'

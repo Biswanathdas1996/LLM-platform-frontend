@@ -261,51 +261,51 @@ try {
 ?>`;
 
   return (
-    <div className="space-y-8">
-      {/* Technical Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 p-8 border border-emerald-500/20">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Compact Technical Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 p-4 sm:p-6 border border-emerald-500/20">
         <div className="absolute inset-0 tech-grid opacity-10" />
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-glow" />
-              <span className="text-sm text-emerald-400 font-medium">API_DOCS</span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs text-emerald-400 font-medium">API Docs</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-blue-400 shadow-glow" />
-                <span className="text-xs text-muted-foreground">REST_API</span>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                <span className="text-xs text-muted-foreground">REST API</span>
               </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-amber-400 shadow-glow" />
-                <span className="text-xs text-muted-foreground">JSON_FORMAT</span>
+              <div className="w-px h-3 bg-border" />
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span className="text-xs text-muted-foreground">JSON Format</span>
               </div>
             </div>
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-400 bg-clip-text text-transparent">
-              API.DOCS
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-400 bg-clip-text text-transparent">
+              API Documentation
             </h1>
-            <p className="text-lg text-muted-foreground max-w-3xl tracking-wide">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">
               Generate API Documentation • Integration Guide • Code Examples • Live Testing
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Documentation */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Endpoint Overview */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-4 w-4" />
                 Generate Text Endpoint
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="outline" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">

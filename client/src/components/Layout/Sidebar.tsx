@@ -68,38 +68,38 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-80 glass-effect border-r border-border/50 min-h-screen backdrop-blur-xl relative overflow-hidden">
+    <aside className="w-56 lg:w-64 glass-effect border-r border-border/50 min-h-screen backdrop-blur-xl relative overflow-hidden hidden lg:block">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/2 to-transparent" />
       
-      <nav className="mt-6 px-6 relative z-10 space-y-6">
+      <nav className="mt-3 px-3 relative z-10 space-y-3">
         {/* System Status Header */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-muted/30 to-muted/20 border border-border/30 relative overflow-hidden">
+        <div className="p-2.5 rounded-lg bg-gradient-to-r from-muted/30 to-muted/20 border border-border/30 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-blue-500/5" />
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
-                NEURAL_CORE
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs text-muted-foreground font-medium">
+                Neural Core
               </span>
               <div className="flex space-x-1">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-glow" />
-                <div className="w-2 h-2 rounded-full bg-amber-400 shadow-glow" />
-                <div className="w-2 h-2 rounded-full bg-red-400 shadow-glow" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
               </div>
             </div>
-            <div className="text-xs mono text-foreground font-medium">
-              SYSTEM OPERATIONAL
+            <div className="text-xs text-foreground font-medium">
+              System Operational
             </div>
-            <div className="text-xs mono text-muted-foreground">
-              127.0.0.1:5000 • SECURED
+            <div className="text-xs text-muted-foreground">
+              127.0.0.1:5000
             </div>
           </div>
         </div>
 
         {/* Primary Navigation */}
         <div className="space-y-1">
-          <div className="px-4 pb-2">
-            <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
-              PRIMARY_NAV
+          <div className="px-2 pb-1">
+            <span className="text-xs text-muted-foreground font-medium">
+              Navigation
             </span>
           </div>
 
@@ -110,22 +110,19 @@ export function Sidebar() {
             return (
               <Link key={item.name} href={item.href}>
                 <div className={`
-                  group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 cursor-pointer relative overflow-hidden
+                  group flex items-center px-2.5 py-2 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer relative overflow-hidden
                   ${isActive 
-                    ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/30 shadow-tech' 
-                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent hover:border-border/50 hover:shadow-tech'
+                    ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/30' 
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground border border-transparent hover:border-border/50'
                   }
                 `}>
                   {isActive && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-primary to-purple-600 rounded-r-full shadow-glow" />
-                    </>
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-gradient-to-b from-primary to-purple-600 rounded-r-full" />
                   )}
                   
-                  <div className={`mr-3 p-2 rounded-lg transition-all duration-300 ${
+                  <div className={`mr-2 p-1.5 rounded-md transition-all duration-300 ${
                     isActive 
-                      ? 'bg-primary/20 shadow-inner' 
+                      ? 'bg-primary/20' 
                       : 'bg-muted/30 group-hover:bg-primary/10'
                   }`}>
                     <Icon className={`h-4 w-4 transition-all duration-300 ${

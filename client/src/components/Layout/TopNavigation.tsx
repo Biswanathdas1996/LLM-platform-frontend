@@ -10,67 +10,66 @@ export function TopNavigation() {
   const isHealthy = health?.status === 'healthy';
 
   return (
-    <nav className="glass-effect border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl relative overflow-hidden">
+    <nav className="glass-effect border-b border-border/50 sticky top-0 z-50 backdrop-blur-xl relative overflow-hidden h-14">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <div className="flex justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 relative z-10 h-full">
+        <div className="flex justify-between items-center h-full">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center group">
-              <div className="relative">
-                <Brain className="text-primary h-8 w-8 mr-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" />
-                <div className="absolute inset-0 bg-primary/30 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" />
+              <div className="relative mr-2 sm:mr-3">
+                <Brain className="text-primary h-5 w-5 sm:h-6 sm:w-6 transition-all duration-300 group-hover:scale-110" />
+                <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
               </div>
               <div>
-                <h1 className="text-xl font-bold mono bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                  LLM.PLATFORM
+                <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                  LLM Platform
                 </h1>
-                <p className="text-xs text-muted-foreground mono hidden sm:block tracking-wider">
-                  v2.1.0 • NEURAL INTERFACE
+                <p className="text-xs text-muted-foreground hidden sm:block">
+                  v2.1.0
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            {/* System Metrics */}
-            <div className="hidden lg:flex items-center space-x-4">
-              <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-muted/30 border border-border/30">
+          <div className="flex items-center space-x-2">
+            {/* System Metrics - Hidden on mobile */}
+            <div className="hidden lg:flex items-center space-x-1.5">
+              <div className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30">
                 <Activity className="h-3 w-3 text-emerald-400" />
-                <span className="text-xs mono text-muted-foreground">CPU 23%</span>
+                <span className="text-xs text-muted-foreground">23%</span>
               </div>
-              <div className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-muted/30 border border-border/30">
+              <div className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-muted/30 border border-border/30">
                 <HardDrive className="h-3 w-3 text-blue-400" />
-                <span className="text-xs mono text-muted-foreground">RAM 2.1GB</span>
+                <span className="text-xs text-muted-foreground">2.1GB</span>
               </div>
             </div>
             
             {/* API Status */}
-            <div className="flex items-center space-x-3 px-4 py-2 rounded-xl bg-muted/50 border border-border/50 shadow-tech">
-              <div className="flex items-center space-x-2">
-                <div className={`status-indicator transition-all duration-300 ${
+            <div className="flex items-center space-x-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-muted/50 border border-border/50">
+              <div className="flex items-center space-x-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                   healthLoading 
                     ? 'bg-amber-400 animate-pulse' 
                     : isHealthy 
                       ? 'bg-emerald-400' 
                       : 'bg-red-400'
                 }`} />
-                <span className="text-sm font-medium mono text-foreground">
+                <span className="text-sm font-medium text-foreground">
                   {healthLoading 
-                    ? 'SYS_CHECK' 
+                    ? 'Checking' 
                     : isHealthy 
-                      ? 'ONLINE' 
-                      : 'OFFLINE'
+                      ? 'Online' 
+                      : 'Offline'
                   }
                 </span>
               </div>
               {isHealthy && (
-                <div className="h-4 w-px bg-border" />
-              )}
-              {isHealthy && (
-                <span className="text-xs mono text-muted-foreground">
-                  127.0.0.1:5000
-                </span>
+                <>
+                  <div className="h-3 w-px bg-border hidden sm:block" />
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    127.0.0.1:5000
+                  </span>
+                </>
               )}
             </div>
             
