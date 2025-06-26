@@ -69,22 +69,38 @@ export function Sidebar() {
     <aside className="w-80 glass-effect border-r border-border/50 min-h-screen backdrop-blur-xl relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/2 to-transparent" />
       
-      <nav className="mt-6 px-6 relative z-10">
-        {/* Navigation Header */}
-        <div className="mb-6 p-4 rounded-xl bg-muted/30 border border-border/30">
-          <div className="flex items-center justify-between">
-            <span className="text-xs mono text-muted-foreground uppercase tracking-wider">
-              NAVIGATION
-            </span>
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <div className="w-2 h-2 rounded-full bg-amber-400" />
-              <div className="w-2 h-2 rounded-full bg-red-400" />
+      <nav className="mt-6 px-6 relative z-10 space-y-6">
+        {/* System Status Header */}
+        <div className="p-4 rounded-xl bg-gradient-to-r from-muted/30 to-muted/20 border border-border/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-blue-500/5" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
+                NEURAL_CORE
+              </span>
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-glow" />
+                <div className="w-2 h-2 rounded-full bg-amber-400 shadow-glow" />
+                <div className="w-2 h-2 rounded-full bg-red-400 shadow-glow" />
+              </div>
+            </div>
+            <div className="text-xs mono text-foreground font-medium">
+              SYSTEM OPERATIONAL
+            </div>
+            <div className="text-xs mono text-muted-foreground">
+              127.0.0.1:5000 • SECURED
             </div>
           </div>
         </div>
 
-        <div className="space-y-2">
+        {/* Primary Navigation */}
+        <div className="space-y-1">
+          <div className="px-4 pb-2">
+            <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
+              PRIMARY_NAV
+            </span>
+          </div>
+
           {navigation.map((item) => {
             const isActive = location === item.href;
             const Icon = item.icon;
@@ -137,11 +153,11 @@ export function Sidebar() {
         </div>
         
         {/* System Operations */}
-        <div className="mt-8 pt-6 border-t border-border/50">
-          <div className="px-4 mb-4">
-            <h3 className="text-xs mono text-muted-foreground uppercase tracking-wider">
-              SYS_OPS
-            </h3>
+        <div className="space-y-1">
+          <div className="px-4 pb-2 border-t border-border/50 pt-4">
+            <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
+              SYS_OPERATIONS
+            </span>
           </div>
           <div className="space-y-2">
             <Button
@@ -178,20 +194,118 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* System Info */}
-        <div className="mt-8 p-4 rounded-xl bg-muted/20 border border-border/30">
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs mono text-muted-foreground">UPTIME</span>
-              <span className="text-xs mono text-foreground">04:23:15</span>
+        {/* Resource Monitor */}
+        <div className="p-4 rounded-xl bg-gradient-to-br from-muted/20 to-muted/10 border border-border/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+          <div className="relative z-10">
+            <div className="px-0 pb-3">
+              <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
+                SYSTEM_MONITOR
+              </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs mono text-muted-foreground">VERSION</span>
-              <span className="text-xs mono text-foreground">2.1.0</span>
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs mono text-muted-foreground">CPU_USAGE</span>
+                  <span className="text-xs mono text-emerald-400 font-bold">23%</span>
+                </div>
+                <div className="w-full bg-muted/50 rounded-full h-1.5">
+                  <div className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-1.5 rounded-full" style={{width: '23%'}}></div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs mono text-muted-foreground">MEMORY</span>
+                  <span className="text-xs mono text-blue-400 font-bold">2.1GB</span>
+                </div>
+                <div className="w-full bg-muted/50 rounded-full h-1.5">
+                  <div className="bg-gradient-to-r from-blue-400 to-blue-500 h-1.5 rounded-full" style={{width: '45%'}}></div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs mono text-muted-foreground">STORAGE</span>
+                  <span className="text-xs mono text-purple-400 font-bold">156GB</span>
+                </div>
+                <div className="w-full bg-muted/50 rounded-full h-1.5">
+                  <div className="bg-gradient-to-r from-purple-400 to-purple-500 h-1.5 rounded-full" style={{width: '67%'}}></div>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs mono text-muted-foreground">NODE_ENV</span>
-              <span className="text-xs mono text-emerald-400">DEV</span>
+          </div>
+        </div>
+
+        {/* System Information */}
+        <div className="p-4 rounded-xl bg-gradient-to-br from-muted/20 to-muted/10 border border-border/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-cyan-500/5" />
+          <div className="relative z-10">
+            <div className="px-0 pb-3">
+              <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
+                SYSTEM_INFO
+              </span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-xs mono text-muted-foreground">UPTIME</span>
+                <span className="text-xs mono text-foreground font-bold">04:23:15</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs mono text-muted-foreground">VERSION</span>
+                <span className="text-xs mono text-foreground font-bold">2.1.0</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs mono text-muted-foreground">NODE_ENV</span>
+                <span className="text-xs mono text-emerald-400 font-bold">DEV</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs mono text-muted-foreground">MODELS</span>
+                <span className="text-xs mono text-blue-400 font-bold">{modelsData?.count || 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs mono text-muted-foreground">PROTOCOLS</span>
+                <span className="text-xs mono text-purple-400 font-bold">HTTP/WS</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Network Status */}
+        <div className="p-4 rounded-xl bg-gradient-to-br from-muted/20 to-muted/10 border border-border/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5" />
+          <div className="relative z-10">
+            <div className="px-0 pb-3">
+              <span className="text-xs mono text-muted-foreground uppercase tracking-wider font-bold">
+                NETWORK_STATUS
+              </span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs mono text-muted-foreground">API_SERVER</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow" />
+                  <span className="text-xs mono text-emerald-400 font-bold">ONLINE</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs mono text-muted-foreground">DATABASE</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-400 shadow-glow" />
+                  <span className="text-xs mono text-blue-400 font-bold">CONNECTED</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs mono text-muted-foreground">WEBSOCKET</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-400 shadow-glow" />
+                  <span className="text-xs mono text-purple-400 font-bold">ACTIVE</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-border/30">
+                <span className="text-xs mono text-muted-foreground">LATENCY</span>
+                <span className="text-xs mono text-emerald-400 font-bold">12ms</span>
+              </div>
             </div>
           </div>
         </div>
