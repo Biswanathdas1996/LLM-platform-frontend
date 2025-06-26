@@ -114,7 +114,10 @@ export default function ExternalLogs() {
       const matchesSearch = !searchTerm || 
         log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (log.endpoint && log.endpoint.toLowerCase().includes(searchTerm.toLowerCase()));
+        (log.endpoint && log.endpoint.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (log.request_id && log.request_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (log.url && log.url.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (log.method && log.method.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesLevel = levelFilter === 'all' || log.level.toUpperCase() === levelFilter.toUpperCase();
       const matchesModule = moduleFilter === 'all' || log.module === moduleFilter;
@@ -443,7 +446,7 @@ export default function ExternalLogs() {
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search logs..."
+                placeholder="Search logs, request IDs, endpoints..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-64"
