@@ -6,6 +6,8 @@ export function useHealth() {
     queryKey: ['/api/v1/health'],
     queryFn: () => api.health(),
     refetchInterval: 30000, // Check health every 30 seconds
+    retry: 1,
+    retryDelay: 1000,
   });
 }
 
@@ -13,6 +15,8 @@ export function useModels() {
   return useQuery({
     queryKey: ['/api/v1/models'],
     queryFn: () => api.getModels(),
+    retry: 1,
+    retryDelay: 1000,
   });
 }
 
@@ -70,5 +74,7 @@ export function useCacheStatus() {
   return useQuery({
     queryKey: ['/api/v1/cache'],
     queryFn: () => api.getCacheStatus(),
+    retry: 1,
+    retryDelay: 1000,
   });
 }

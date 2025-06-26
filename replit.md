@@ -110,6 +110,7 @@ Changelog:
 - June 26, 2025. Initial setup
 - June 26, 2025. Fixed DOM nesting warning in Sidebar navigation (changed nested `<a>` tags to `<div>`)
 - June 26, 2025. Fixed React error in ChatInterface by adding type safety for message content rendering
+- June 26, 2025. Added global error handlers for unhandled promise rejections and improved API error handling with retry logic
 
 ## User Preferences
 
