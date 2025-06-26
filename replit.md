@@ -117,6 +117,7 @@ Changelog:
 - June 26, 2025. Enhanced External Logs with prominent display of response_body, duration_ms, and content_type fields, plus dedicated Request ID filter for tracking specific API request lifecycles
 - June 26, 2025. Added comprehensive analytics dashboard with modern visualizations including request volume trends (area chart), response time analysis (line chart), HTTP status code distribution (pie chart), method usage (bar chart), endpoint performance metrics (horizontal bar chart), and detailed performance tables using Recharts library
 - June 26, 2025. Refactored analytics dashboard to use modern Nivo charts including ResponsiveLine for time series, ResponsiveScatterPlot for response times, ResponsivePie for status codes, ResponsiveBar for methods and endpoints, and ResponsiveHeatMap for activity patterns - providing more interactive and visually appealing data visualizations
+- June 26, 2025. Enhanced Request Volume Over Time graph with comprehensive controls including time range selector (1H/6H/12H/24H/7D), granularity options (minute/hour/day), chart type switcher (line/area/bar), trend line toggle, quick stats display with totals and averages, enhanced tooltips showing detailed metrics, and improved visual styling with better legends and grid patterns
 
 ## User Preferences
 

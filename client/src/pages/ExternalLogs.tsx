@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter, TrendingUp, Activity, Clock, BarChart3 } from 'lucide-react';
+import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter, TrendingUp, Activity, Clock, BarChart3, Calendar, Settings, Eye, BarChart2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +52,12 @@ export default function ExternalLogs() {
   const [moduleFilter, setModuleFilter] = useState<string>('all');
 
   const [activeTab, setActiveTab] = useState('analytics');
+  
+  // Enhanced analytics controls
+  const [timeRange, setTimeRange] = useState<'1h' | '6h' | '12h' | '24h' | '7d'>('24h');
+  const [granularity, setGranularity] = useState<'minute' | 'hour' | 'day'>('hour');
+  const [showTrend, setShowTrend] = useState(true);
+  const [chartType, setChartType] = useState<'line' | 'area' | 'bar'>('area');
 
   const fetchLogs = async () => {
     setIsLoading(true);
@@ -330,56 +336,167 @@ export default function ExternalLogs() {
     };
   };
 
-  // Analytics data processing functions for Nivo charts
+  // Enhanced analytics data processing functions for Nivo charts
   const getTimeSeriesData = () => {
     if (!logsData) return [];
     
     const allLogs = [...logsData.api_logs, ...logsData.error_logs];
-    const groupedByHour = allLogs.reduce((acc, log) => {
-      const hour = new Date(log.timestamp).toISOString().slice(0, 13) + ':00:00';
-      if (!acc[hour]) {
-        acc[hour] = { x: hour, requests: 0, errors: 0 };
-      }
-      if (log.level === 'ERROR') {
-        acc[hour].errors++;
+    const now = new Date();
+    
+    // Calculate time range in milliseconds
+    const timeRangeMs = {
+      '1h': 60 * 60 * 1000,
+      '6h': 6 * 60 * 60 * 1000,
+      '12h': 12 * 60 * 60 * 1000,
+      '24h': 24 * 60 * 60 * 1000,
+      '7d': 7 * 24 * 60 * 60 * 1000
+    }[timeRange];
+    
+    const startTime = new Date(now.getTime() - timeRangeMs);
+    
+    // Filter logs by time range
+    const filteredLogs = allLogs.filter(log => 
+      new Date(log.timestamp).getTime() >= startTime.getTime()
+    );
+    
+    // Determine time bucket size based on granularity and range
+    const getBucketKey = (timestamp: string) => {
+      const date = new Date(timestamp);
+      if (granularity === 'minute') {
+        return date.toISOString().slice(0, 16) + ':00.000Z';
+      } else if (granularity === 'hour') {
+        return date.toISOString().slice(0, 13) + ':00:00.000Z';
       } else {
-        acc[hour].requests++;
+        return date.toISOString().slice(0, 10) + 'T00:00:00.000Z';
       }
+    };
+    
+    const formatLabel = (timestamp: string) => {
+      const date = new Date(timestamp);
+      if (granularity === 'minute') {
+        return date.toLocaleTimeString('en-IN', { 
+          timeZone: 'Asia/Kolkata', 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
+      } else if (granularity === 'hour') {
+        return date.toLocaleTimeString('en-IN', { 
+          timeZone: 'Asia/Kolkata', 
+          hour: '2-digit',
+          hour12: false 
+        }) + ':00';
+      } else {
+        return date.toLocaleDateString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+    };
+    
+    const groupedData = filteredLogs.reduce((acc, log) => {
+      const bucketKey = getBucketKey(log.timestamp);
+      if (!acc[bucketKey]) {
+        acc[bucketKey] = { 
+          timestamp: bucketKey, 
+          requests: 0, 
+          errors: 0, 
+          total: 0,
+          avgResponseTime: 0,
+          responseTimeSum: 0,
+          responseTimeCount: 0,
+          statusCodes: {} as Record<string, number>
+        };
+      }
+      
+      acc[bucketKey].total++;
+      
+      if (log.level === 'ERROR') {
+        acc[bucketKey].errors++;
+      } else {
+        acc[bucketKey].requests++;
+      }
+      
+      // Add response time data
+      if (log.duration_ms && log.duration_ms > 0) {
+        acc[bucketKey].responseTimeSum += log.duration_ms;
+        acc[bucketKey].responseTimeCount++;
+        acc[bucketKey].avgResponseTime = acc[bucketKey].responseTimeSum / acc[bucketKey].responseTimeCount;
+      }
+      
+      // Track status codes
+      if (log.status_code) {
+        const code = log.status_code.toString();
+        acc[bucketKey].statusCodes[code] = (acc[bucketKey].statusCodes[code] || 0) + 1;
+      }
+      
       return acc;
     }, {} as Record<string, any>);
     
-    const sortedData = Object.values(groupedByHour).sort((a: any, b: any) => 
-      new Date(a.x).getTime() - new Date(b.x).getTime()
-    ).slice(-24); // Last 24 hours
+    const sortedData = Object.values(groupedData).sort((a: any, b: any) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
     
-    return [
+    const series = [
       {
-        id: 'requests',
+        id: 'Successful Requests',
         color: '#10b981',
         data: sortedData.map((d: any) => ({ 
-          x: new Date(d.x).toLocaleTimeString('en-IN', { 
-            timeZone: 'Asia/Kolkata', 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-          }), 
-          y: d.requests 
+          x: formatLabel(d.timestamp), 
+          y: d.requests,
+          total: d.total,
+          avgResponseTime: d.avgResponseTime?.toFixed(2) || 0,
+          timestamp: d.timestamp
         }))
       },
       {
-        id: 'errors',
+        id: 'Errors',
         color: '#ef4444',
         data: sortedData.map((d: any) => ({ 
-          x: new Date(d.x).toLocaleTimeString('en-IN', { 
-            timeZone: 'Asia/Kolkata', 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-          }), 
-          y: d.errors 
+          x: formatLabel(d.timestamp), 
+          y: d.errors,
+          total: d.total,
+          avgResponseTime: d.avgResponseTime?.toFixed(2) || 0,
+          timestamp: d.timestamp
         }))
       }
     ];
+    
+    // Add trend line if enabled
+    if (showTrend && sortedData.length > 2) {
+      const trendData = calculateTrendLine(sortedData.map((d, i) => ({ x: i, y: d.total })));
+      series.push({
+        id: 'Trend',
+        color: '#8b5cf6',
+        data: trendData.map((point, i) => ({
+          x: formatLabel(sortedData[i]?.timestamp || ''),
+          y: point.y,
+          total: 0,
+          avgResponseTime: 0,
+          timestamp: sortedData[i]?.timestamp || ''
+        }))
+      });
+    }
+    
+    return series;
+  };
+  
+  // Calculate linear trend line
+  const calculateTrendLine = (data: { x: number; y: number }[]) => {
+    const n = data.length;
+    const sumX = data.reduce((sum, point) => sum + point.x, 0);
+    const sumY = data.reduce((sum, point) => sum + point.y, 0);
+    const sumXY = data.reduce((sum, point) => sum + point.x * point.y, 0);
+    const sumXX = data.reduce((sum, point) => sum + point.x * point.x, 0);
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    return data.map(point => ({
+      x: point.x,
+      y: slope * point.x + intercept
+    }));
   };
 
   const getResponseTimeData = () => {
@@ -699,117 +816,468 @@ export default function ExternalLogs() {
 
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Request Volume Over Time */}
+            {/* Enhanced Request Volume Over Time */}
             <Card className="col-span-full">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
-                  Request Volume Over Time (Last 24 Hours)
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                    Request Volume Over Time
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {timeRange.toUpperCase()} - {granularity}
+                    </Badge>
+                  </CardTitle>
+                  <div className="flex items-center gap-3">
+                    {/* Time Range Selector */}
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
+                        <SelectTrigger className="w-20 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1h">1H</SelectItem>
+                          <SelectItem value="6h">6H</SelectItem>
+                          <SelectItem value="12h">12H</SelectItem>
+                          <SelectItem value="24h">24H</SelectItem>
+                          <SelectItem value="7d">7D</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Granularity Selector */}
+                    <div className="flex items-center gap-1">
+                      <Settings className="h-4 w-4 text-gray-400" />
+                      <Select value={granularity} onValueChange={(value: any) => setGranularity(value)}>
+                        <SelectTrigger className="w-20 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="minute">Min</SelectItem>
+                          <SelectItem value="hour">Hour</SelectItem>
+                          <SelectItem value="day">Day</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Chart Type Selector */}
+                    <div className="flex items-center gap-1">
+                      <BarChart2 className="h-4 w-4 text-gray-400" />
+                      <Select value={chartType} onValueChange={(value: any) => setChartType(value)}>
+                        <SelectTrigger className="w-20 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="line">Line</SelectItem>
+                          <SelectItem value="area">Area</SelectItem>
+                          <SelectItem value="bar">Bar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Trend Toggle */}
+                    <Button
+                      variant={showTrend ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowTrend(!showTrend)}
+                      className="h-8 px-3 text-xs"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Trend
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Quick Stats */}
+                <div className="grid grid-cols-4 gap-4 mt-4 text-sm">
+                  <div className="text-center p-2 bg-green-500/10 rounded border border-green-500/20">
+                    <div className="text-green-400 font-semibold">
+                      {getTimeSeriesData().find(s => s.id === 'Successful Requests')?.data.reduce((sum, d) => sum + d.y, 0) || 0}
+                    </div>
+                    <div className="text-gray-400 text-xs">Total Requests</div>
+                  </div>
+                  <div className="text-center p-2 bg-red-500/10 rounded border border-red-500/20">
+                    <div className="text-red-400 font-semibold">
+                      {getTimeSeriesData().find(s => s.id === 'Errors')?.data.reduce((sum, d) => sum + d.y, 0) || 0}
+                    </div>
+                    <div className="text-gray-400 text-xs">Total Errors</div>
+                  </div>
+                  <div className="text-center p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                    <div className="text-blue-400 font-semibold">
+                      {(() => {
+                        const data = getTimeSeriesData().find(s => s.id === 'Successful Requests')?.data || [];
+                        const avg = data.length > 0 ? data.reduce((sum, d) => sum + d.y, 0) / data.length : 0;
+                        return avg.toFixed(1);
+                      })()}
+                    </div>
+                    <div className="text-gray-400 text-xs">Avg Req/Period</div>
+                  </div>
+                  <div className="text-center p-2 bg-purple-500/10 rounded border border-purple-500/20">
+                    <div className="text-purple-400 font-semibold">
+                      {(() => {
+                        const data = getTimeSeriesData().find(s => s.id === 'Successful Requests')?.data || [];
+                        const maxPoint = data.reduce((max, d) => d.y > max.y ? d : max, { y: 0, x: '' });
+                        return maxPoint.y;
+                      })()}
+                    </div>
+                    <div className="text-gray-400 text-xs">Peak Load</div>
+                  </div>
+                </div>
               </CardHeader>
+              
               <CardContent>
-                <div style={{ height: '350px' }}>
-                  <ResponsiveLine
-                    data={getTimeSeriesData()}
-                    margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-                    xScale={{ type: 'point' }}
-                    yScale={{
-                      type: 'linear',
-                      min: 'auto',
-                      max: 'auto',
-                      stacked: false,
-                    }}
-                    axisTop={null}
-                    axisRight={null}
-                    axisBottom={{
-                      tickSize: 5,
-                      tickPadding: 5,
-                      tickRotation: -45,
-                      legend: 'Time (IST)',
-                      legendOffset: 36,
-                      legendPosition: 'middle'
-                    }}
-                    axisLeft={{
-                      tickSize: 5,
-                      tickPadding: 5,
-                      tickRotation: 0,
-                      legend: 'Count',
-                      legendOffset: -40,
-                      legendPosition: 'middle'
-                    }}
-                    enableArea={true}
-                    areaOpacity={0.3}
-                    pointSize={6}
-                    pointColor={{ theme: 'background' }}
-                    pointBorderWidth={2}
-                    pointBorderColor={{ from: 'serieColor' }}
-                    pointLabel="y"
-                    pointLabelYOffset={-12}
-                    useMesh={true}
-                    legends={[
-                      {
-                        anchor: 'bottom-right',
-                        direction: 'column',
-                        justify: false,
-                        translateX: 100,
-                        translateY: 0,
-                        itemsSpacing: 0,
-                        itemDirection: 'left-to-right',
-                        itemWidth: 80,
-                        itemHeight: 20,
-                        itemOpacity: 0.75,
-                        symbolSize: 12,
-                        symbolShape: 'circle',
-                        symbolBorderColor: 'rgba(0, 0, 0, .5)',
-                        effects: [
-                          {
-                            on: 'hover',
-                            style: {
-                              itemBackground: 'rgba(0, 0, 0, .03)',
-                              itemOpacity: 1
+                <div style={{ height: '400px' }}>
+                  {chartType === 'area' && (
+                    <ResponsiveLine
+                      data={getTimeSeriesData()}
+                      margin={{ top: 50, right: 120, bottom: 70, left: 70 }}
+                      xScale={{ type: 'point' }}
+                      yScale={{
+                        type: 'linear',
+                        min: 'auto',
+                        max: 'auto',
+                        stacked: false,
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: -45,
+                        legend: `Time (IST) - ${granularity}ly intervals`,
+                        legendOffset: 50,
+                        legendPosition: 'middle'
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Request Count',
+                        legendOffset: -50,
+                        legendPosition: 'middle'
+                      }}
+                      enableArea={true}
+                      areaOpacity={0.4}
+                      pointSize={8}
+                      pointColor={{ theme: 'background' }}
+                      pointBorderWidth={3}
+                      pointBorderColor={{ from: 'serieColor' }}
+                      useMesh={true}
+                      enableSlices="x"
+                      sliceTooltip={({ slice }) => (
+                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-lg">
+                          <div className="text-gray-300 text-sm font-medium mb-2">
+                            {slice.points[0]?.data.x}
+                          </div>
+                          {slice.points.map((point) => (
+                            <div key={point.id} className="flex items-center gap-2 text-sm">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: point.seriesColor }}
+                              />
+                              <span className="text-gray-300">{point.seriesId}:</span>
+                              <span className="text-white font-semibold">{point.data.y}</span>
+                              {point.data.total && (
+                                <span className="text-gray-400 text-xs">
+                                  (Total: {point.data.total}, Avg RT: {point.data.avgResponseTime}ms)
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      legends={[
+                        {
+                          anchor: 'bottom-right',
+                          direction: 'column',
+                          justify: false,
+                          translateX: 110,
+                          translateY: 0,
+                          itemsSpacing: 2,
+                          itemDirection: 'left-to-right',
+                          itemWidth: 100,
+                          itemHeight: 20,
+                          itemOpacity: 0.85,
+                          symbolSize: 14,
+                          symbolShape: 'circle',
+                          effects: [
+                            {
+                              on: 'hover',
+                              style: {
+                                itemBackground: 'rgba(0, 0, 0, .1)',
+                                itemOpacity: 1
+                              }
+                            }
+                          ]
+                        }
+                      ]}
+                      theme={{
+                        background: 'transparent',
+                        text: {
+                          fontSize: 12,
+                          fill: '#9ca3af',
+                        },
+                        axis: {
+                          domain: {
+                            line: {
+                              stroke: '#374151',
+                              strokeWidth: 1
+                            }
+                          },
+                          legend: {
+                            text: {
+                              fontSize: 13,
+                              fill: '#d1d5db',
+                            }
+                          },
+                          ticks: {
+                            line: {
+                              stroke: '#374151',
+                              strokeWidth: 1
+                            },
+                            text: {
+                              fontSize: 11,
+                              fill: '#9ca3af',
                             }
                           }
-                        ]
-                      }
-                    ]}
-                    theme={{
-                      background: 'transparent',
-                      text: {
-                        fontSize: 11,
-                        fill: '#9ca3af',
-                      },
-                      axis: {
-                        domain: {
+                        },
+                        grid: {
                           line: {
                             stroke: '#374151',
-                            strokeWidth: 1
+                            strokeWidth: 0.5,
+                            strokeDasharray: '3 3'
                           }
                         },
-                        legend: {
-                          text: {
-                            fontSize: 12,
-                            fill: '#9ca3af',
-                          }
-                        },
-                        ticks: {
+                        crosshair: {
                           line: {
-                            stroke: '#374151',
-                            strokeWidth: 1
+                            stroke: '#ffffff',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.7
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                  
+                  {chartType === 'line' && (
+                    <ResponsiveLine
+                      data={getTimeSeriesData()}
+                      margin={{ top: 50, right: 120, bottom: 70, left: 70 }}
+                      xScale={{ type: 'point' }}
+                      yScale={{
+                        type: 'linear',
+                        min: 'auto',
+                        max: 'auto',
+                        stacked: false,
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: -45,
+                        legend: `Time (IST) - ${granularity}ly intervals`,
+                        legendOffset: 50,
+                        legendPosition: 'middle'
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Request Count',
+                        legendOffset: -50,
+                        legendPosition: 'middle'
+                      }}
+                      enableArea={false}
+                      pointSize={6}
+                      pointColor={{ theme: 'background' }}
+                      pointBorderWidth={2}
+                      pointBorderColor={{ from: 'serieColor' }}
+                      useMesh={true}
+                      curve="monotoneX"
+                      enableSlices="x"
+                      sliceTooltip={({ slice }) => (
+                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-lg">
+                          <div className="text-gray-300 text-sm font-medium mb-2">
+                            {slice.points[0]?.data.x}
+                          </div>
+                          {slice.points.map((point) => (
+                            <div key={point.id} className="flex items-center gap-2 text-sm">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: point.seriesColor }}
+                              />
+                              <span className="text-gray-300">{point.seriesId}:</span>
+                              <span className="text-white font-semibold">{point.data.y}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      legends={[
+                        {
+                          anchor: 'bottom-right',
+                          direction: 'column',
+                          justify: false,
+                          translateX: 110,
+                          translateY: 0,
+                          itemsSpacing: 2,
+                          itemDirection: 'left-to-right',
+                          itemWidth: 100,
+                          itemHeight: 20,
+                          itemOpacity: 0.85,
+                          symbolSize: 14,
+                          symbolShape: 'circle'
+                        }
+                      ]}
+                      theme={{
+                        background: 'transparent',
+                        text: {
+                          fontSize: 12,
+                          fill: '#9ca3af',
+                        },
+                        axis: {
+                          domain: {
+                            line: {
+                              stroke: '#374151',
+                              strokeWidth: 1
+                            }
                           },
-                          text: {
-                            fontSize: 11,
-                            fill: '#9ca3af',
+                          legend: {
+                            text: {
+                              fontSize: 13,
+                              fill: '#d1d5db',
+                            }
+                          },
+                          ticks: {
+                            line: {
+                              stroke: '#374151',
+                              strokeWidth: 1
+                            },
+                            text: {
+                              fontSize: 11,
+                              fill: '#9ca3af',
+                            }
+                          }
+                        },
+                        grid: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 0.5,
+                            strokeDasharray: '3 3'
                           }
                         }
-                      },
-                      grid: {
-                        line: {
-                          stroke: '#374151',
-                          strokeWidth: 1
+                      }}
+                    />
+                  )}
+                  
+                  {chartType === 'bar' && (
+                    <ResponsiveBar
+                      data={getTimeSeriesData()[0]?.data.map((d, i) => ({
+                        time: d.x,
+                        requests: getTimeSeriesData().find(s => s.id === 'Successful Requests')?.data[i]?.y || 0,
+                        errors: getTimeSeriesData().find(s => s.id === 'Errors')?.data[i]?.y || 0
+                      })) || []}
+                      keys={['requests', 'errors']}
+                      indexBy="time"
+                      margin={{ top: 50, right: 120, bottom: 70, left: 70 }}
+                      padding={0.2}
+                      valueScale={{ type: 'linear' }}
+                      indexScale={{ type: 'band', round: true }}
+                      colors={['#10b981', '#ef4444']}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.2]]
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: -45,
+                        legend: `Time (IST) - ${granularity}ly intervals`,
+                        legendOffset: 50,
+                        legendPosition: 'middle'
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Request Count',
+                        legendOffset: -50,
+                        legendPosition: 'middle'
+                      }}
+                      enableLabel={false}
+                      tooltip={({ id, value, indexValue, color }) => (
+                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-lg">
+                          <div className="flex items-center gap-2 text-sm">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: color }}
+                            />
+                            <span className="text-gray-300">{id}:</span>
+                            <span className="text-white font-semibold">{value}</span>
+                          </div>
+                          <div className="text-gray-400 text-xs mt-1">
+                            Time: {indexValue}
+                          </div>
+                        </div>
+                      )}
+                      legends={[
+                        {
+                          dataFrom: 'keys',
+                          anchor: 'bottom-right',
+                          direction: 'column',
+                          justify: false,
+                          translateX: 110,
+                          translateY: 0,
+                          itemsSpacing: 2,
+                          itemWidth: 100,
+                          itemHeight: 20,
+                          itemDirection: 'left-to-right',
+                          itemOpacity: 0.85,
+                          symbolSize: 14
                         }
-                      }
-                    }}
-                  />
+                      ]}
+                      theme={{
+                        background: 'transparent',
+                        text: {
+                          fontSize: 12,
+                          fill: '#9ca3af',
+                        },
+                        axis: {
+                          domain: {
+                            line: {
+                              stroke: '#374151',
+                              strokeWidth: 1
+                            }
+                          },
+                          legend: {
+                            text: {
+                              fontSize: 13,
+                              fill: '#d1d5db',
+                            }
+                          },
+                          ticks: {
+                            line: {
+                              stroke: '#374151',
+                              strokeWidth: 1
+                            },
+                            text: {
+                              fontSize: 11,
+                              fill: '#9ca3af',
+                            }
+                          }
+                        },
+                        grid: {
+                          line: {
+                            stroke: '#374151',
+                            strokeWidth: 0.5,
+                            strokeDasharray: '3 3'
+                          }
+                        }
+                      }}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
