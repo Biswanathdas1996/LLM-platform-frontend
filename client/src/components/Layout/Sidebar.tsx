@@ -70,7 +70,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 border-r bg-card/95 backdrop-blur-sm h-screen hidden lg:block relative border-border/50" style={{ height: '100vh', overflow: 'hidden' }}>
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5" />
-      <nav className="px-4 pt-2 pb-0 relative z-10 flex flex-col" style={{ height: '100vh', overflow: 'hidden' }}>
+      <nav className="px-4 pt-2 pb-0 relative z-10 flex flex-col mt-[50px] mb-[50px]" style={{ height: '100vh', overflow: 'hidden' }}>
         {/* Primary Navigation */}
         <div className="flex-1 min-h-0" style={{ overflow: 'hidden' }}>
           <div className="space-y-1">
