@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter } from 'lucide-react';
+import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +44,7 @@ export default function ExternalLogs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
+  const [isClearing, setIsClearing] = useState(false);
 
   const [activeTab, setActiveTab] = useState('api');
 
@@ -70,6 +71,31 @@ export default function ExternalLogs() {
       setError(err instanceof Error ? err.message : 'Failed to fetch logs');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const clearLogs = async () => {
+    setIsClearing(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/v1/clear-logs', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      // Refresh logs after clearing
+      await fetchLogs();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to clear logs');
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -489,6 +515,10 @@ export default function ExternalLogs() {
             <Button variant="outline" onClick={fetchLogs} disabled={isLoading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh Logs
+            </Button>
+            <Button variant="outline" onClick={clearLogs} disabled={isClearing || isLoading}>
+              <Trash2 className={`h-4 w-4 mr-2 ${isClearing ? 'animate-spin' : ''}`} />
+              Clear Logs
             </Button>
             <Button variant="outline" onClick={() => exportLogs('all')}>
               <Download className="h-4 w-4 mr-2" />
