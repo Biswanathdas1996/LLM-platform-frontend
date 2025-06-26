@@ -487,19 +487,7 @@ export default function ExternalLogs() {
               </SelectContent>
             </Select>
 
-            <Select value={requestIdFilter} onValueChange={setRequestIdFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Request ID" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Request IDs</SelectItem>
-                {getUniqueRequestIds().map(requestId => (
-                  <SelectItem key={requestId} value={requestId}>
-                    {requestId}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            
           </div>
 
           <div className="flex gap-2">
