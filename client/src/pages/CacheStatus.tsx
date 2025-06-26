@@ -28,14 +28,37 @@ export default function CacheStatus() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
-          Cache Status
-        </h2>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">
-          Monitor and manage model cache
-        </p>
+    <div className="space-y-8">
+      {/* Technical Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 p-8 border border-orange-500/20">
+        <div className="absolute inset-0 tech-grid opacity-10" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-orange-500/20 border border-orange-500/30">
+              <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-glow" />
+              <span className="text-sm mono text-orange-400 font-medium">CACHE_SYSTEM</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow" />
+                <span className="text-xs mono text-muted-foreground">MEMORY_POOL</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-blue-400 shadow-glow" />
+                <span className="text-xs mono text-muted-foreground">OPTIMIZATION_ON</span>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold mono bg-gradient-to-r from-orange-400 via-red-500 to-orange-400 bg-clip-text text-transparent">
+              CACHE.MONITOR
+            </h1>
+            <p className="text-lg text-muted-foreground mono max-w-3xl tracking-wide">
+              Memory Management • Cache Optimization • Performance Analytics • Resource Monitoring
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="max-w-4xl space-y-6">

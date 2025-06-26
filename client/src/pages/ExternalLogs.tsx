@@ -367,30 +367,60 @@ export default function ExternalLogs() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">External LLM API Logs</h1>
-          <p className="text-gray-600 mt-1">Monitor Local LLM API activity and errors</p>
-          {lastRefresh && (
-            <p className="text-xs text-gray-500 mt-1">
-              Last updated: {lastRefresh.toLocaleString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-              })}
+    <div className="space-y-8">
+      {/* Technical Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 p-8 border border-indigo-500/20">
+        <div className="absolute inset-0 tech-grid opacity-10" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30">
+              <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-glow" />
+              <span className="text-sm mono text-indigo-400 font-medium">LOG_MONITOR</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow" />
+                <span className="text-xs mono text-muted-foreground">STREAM_ACTIVE</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-amber-400 shadow-glow" />
+                <span className="text-xs mono text-muted-foreground">ANALYSIS_ON</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <Button 
+                onClick={fetchLogs} 
+                disabled={isLoading}
+                className="tech-button h-9 px-4"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="mono">REFRESH</span>
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold mono bg-gradient-to-r from-indigo-400 via-purple-500 to-indigo-400 bg-clip-text text-transparent">
+              LOG.ANALYTICS
+            </h1>
+            <p className="text-lg text-muted-foreground mono max-w-3xl tracking-wide">
+              Real-time API Monitoring • Error Tracking • Performance Analysis • Request Tracing
             </p>
-          )}
+            {lastRefresh && (
+              <div className="flex items-center space-x-2 mt-4">
+                <div className="w-2 h-2 rounded-full bg-blue-400 shadow-glow" />
+                <span className="text-xs mono text-muted-foreground">
+                  LAST_SYNC: {lastRefresh.toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-        <Button onClick={fetchLogs} disabled={isLoading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
       </div>
 
       {/* Statistics Cards */}
