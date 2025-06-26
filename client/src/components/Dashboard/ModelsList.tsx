@@ -81,36 +81,77 @@ export function ModelsList() {
             <p className="text-slate-500 dark:text-slate-400">No models available</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-200 dark:divide-slate-700">
-            {modelsData.models.map((model) => (
-              <div key={model.name} className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <Box className="h-5 w-5 text-blue-500" />
+          <div className="space-y-3">
+            {modelsData.models.map((model, index) => (
+              <div 
+                key={model.name} 
+                className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-muted/30 to-muted/20 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative z-10 px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0 relative">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+                          <Box className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
+                            {model.name}
+                          </p>
+                          <div className="flex items-center space-x-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span className="text-xs text-muted-foreground font-medium">Active</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                          <span className="flex items-center space-x-1">
+                            <span>Size:</span>
+                            <span className="font-medium text-foreground">{model.size}</span>
+                          </span>
+                          <span className="flex items-center space-x-1">
+                            <span>Modified:</span>
+                            <span className="font-medium text-foreground">{new Date(model.modified).toLocaleDateString()}</span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">
-                        {model.name}
-                      </p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {model.size}
-                      </p>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Badge 
+                        variant="outline" 
+                        className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors duration-300"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
+                        Ready
+                      </Badge>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(model.name)}
+                        disabled={deleteMutation.isPending}
+                        className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 hover:scale-105"
+                      >
+                        {deleteMutation.isPending ? (
+                          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">
-                      Ready
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(model.name)}
-                      disabled={deleteMutation.isPending}
-                      className="text-slate-400 hover:text-red-600 dark:hover:text-red-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  
+                  {/* Progress bar for visual appeal */}
+                  <div className="mt-3 w-full bg-muted/50 rounded-full h-1 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${Math.min(85 + (index * 5), 100)}%` }}
+                    />
                   </div>
                 </div>
               </div>

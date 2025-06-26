@@ -51,18 +51,20 @@ export function ExternalAPIConfig() {
   };
 
   return (
-    <Card className="modern-card">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <Card className="relative overflow-hidden border border-border/50 hover:border-primary/30 transition-all duration-300 group">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/3 via-purple-500/3 to-teal-500/3 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      <CardHeader className="pb-3 relative z-10">
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-cyan-500/25 transition-all duration-300">
+            <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
           </div>
           Add External API
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative z-10">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -70,14 +72,15 @@ export function ExternalAPIConfig() {
               name="modelName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <FormLabel className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                     Model Name
                   </FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="GPT-4, Claude-3, etc." 
                       {...field}
-                      className="bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      className="border-border/50 focus:border-primary/50 transition-colors duration-300 bg-background/50 backdrop-blur-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -90,14 +93,15 @@ export function ExternalAPIConfig() {
               name="endpoint"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <FormLabel className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                     API Endpoint
                   </FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="https://api.openai.com/v1/chat/completions" 
                       {...field}
-                      className="bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      className="border-border/50 focus:border-cyan-500/50 transition-colors duration-300 bg-background/50 backdrop-blur-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -110,7 +114,8 @@ export function ExternalAPIConfig() {
               name="apiKey"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <FormLabel className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                     API Key
                   </FormLabel>
                   <FormControl>
@@ -118,7 +123,7 @@ export function ExternalAPIConfig() {
                       type="password"
                       placeholder="sk-..." 
                       {...field}
-                      className="bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                      className="border-border/50 focus:border-purple-500/50 transition-colors duration-300 bg-background/50 backdrop-blur-sm"
                     />
                   </FormControl>
                   <FormMessage />
@@ -128,10 +133,24 @@ export function ExternalAPIConfig() {
             
             <Button 
               type="submit" 
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+              className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl hover:shadow-cyan-500/25 transition-all duration-300 group"
               disabled={form.formState.isSubmitting}
             >
-              Add API
+              <div className="flex items-center justify-center space-x-2">
+                {form.formState.isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Adding API...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Add External API</span>
+                  </>
+                )}
+              </div>
             </Button>
           </form>
         </Form>
