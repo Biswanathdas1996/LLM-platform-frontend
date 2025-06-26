@@ -1,5 +1,4 @@
 import { StatsGrid } from '@/components/Dashboard/StatsGrid';
-import { ModelUpload } from '@/components/Dashboard/ModelUpload';
 import { ExternalAPIConfig } from '@/components/Dashboard/ExternalAPIConfig';
 import { ModelsList } from '@/components/Dashboard/ModelsList';
 import { RecentActivity } from '@/components/Dashboard/RecentActivity';
@@ -18,8 +17,7 @@ export default function Dashboard() {
       <div className="space-y-4 sm:space-y-6">
         <StatsGrid />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <ModelUpload />
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <ExternalAPIConfig />
         </div>
 
