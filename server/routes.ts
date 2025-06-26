@@ -173,8 +173,50 @@ function requestLogger(req: Request, res: Response, next: Function) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add request logging middleware to all routes
-  app.use('/api', requestLogger);
+  // SSE endpoint - must be defined before request logging middleware
+  app.get('/api/v1/logs/stream', (req: Request, res: Response) => {
+    console.log('SSE connection requested');
+    
+    // Set SSE headers
+    res.set({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*'
+    });
+
+    // Send initial event
+    const initialEvent = {
+      timestamp: new Date().toISOString(),
+      level: 'INFO',
+      message: 'Connected to live log stream',
+      type: 'custom_event'
+    };
+    res.write(`data: ${JSON.stringify(initialEvent)}\n\n`);
+
+    // Add to subscribers
+    logManager.addSubscriber(res);
+
+    // Heartbeat interval
+    const heartbeat = setInterval(() => {
+      res.write(': heartbeat\n\n');
+    }, 15000);
+
+    // Cleanup on disconnect
+    req.on('close', () => {
+      clearInterval(heartbeat);
+      console.log('SSE client disconnected');
+    });
+  });
+
+  // Add request logging middleware to other routes
+  app.use('/api', (req, res, next) => {
+    // Skip logging for SSE endpoint
+    if (req.path === '/v1/logs/stream') {
+      return next();
+    }
+    requestLogger(req, res, next);
+  });
 
   // Live Logs API endpoints
   app.get('/api/v1/logs/recent', (req: Request, res: Response) => {
@@ -191,25 +233,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(stats);
   });
 
-  app.get('/api/v1/logs/stream', (req: Request, res: Response) => {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control'
+  // Test endpoint to generate sample logs
+  app.post('/api/v1/logs/test', (req: Request, res: Response) => {
+    const testLogs = [
+      { level: 'INFO', message: 'Test log entry generated', type: 'custom_event' },
+      { level: 'WARN', message: 'Sample warning message', type: 'custom_event' },
+      { level: 'ERROR', message: 'Test error for demonstration', type: 'custom_event' },
+      { level: 'DEBUG', message: 'Debug information logged', type: 'custom_event' }
+    ];
+
+    testLogs.forEach((log, index) => {
+      setTimeout(() => {
+        logManager.addLog({
+          timestamp: new Date().toISOString(),
+          level: log.level as LogEntry['level'],
+          message: log.message,
+          module: 'test',
+          type: log.type as LogEntry['type']
+        });
+      }, index * 500);
     });
 
-    // Send keep-alive comment every 30 seconds
-    const keepAlive = setInterval(() => {
-      res.write(': keep-alive\n\n');
-    }, 30000);
-
-    logManager.addSubscriber(res);
-
-    req.on('close', () => {
-      clearInterval(keepAlive);
-    });
+    res.json({ message: 'Test logs generated' });
   });
 
   // Add some sample logs for demonstration

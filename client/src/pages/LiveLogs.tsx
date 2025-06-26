@@ -139,25 +139,39 @@ export default function LiveLogs() {
     }
 
     setError(null);
+    console.log('Attempting to connect to SSE stream...');
+    
     const eventSource = new EventSource('/api/v1/logs/stream');
     eventSourceRef.current = eventSource;
 
-    eventSource.onopen = () => {
+    eventSource.onopen = (event) => {
+      console.log('SSE connection opened:', event);
       setIsConnected(true);
+      setError(null);
     };
 
     eventSource.onmessage = (event) => {
+      console.log('SSE message received:', event.data);
       try {
         const logEntry: LogEntry = JSON.parse(event.data);
         setLogs(prev => [...prev, logEntry]);
       } catch (err) {
-        console.error('Failed to parse log entry:', err);
+        console.error('Failed to parse log entry:', err, 'Data:', event.data);
       }
     };
 
-    eventSource.onerror = () => {
+    eventSource.onerror = (event) => {
+      console.error('SSE connection error:', event);
       setIsConnected(false);
-      setError('Connection to log stream failed');
+      
+      // Check the readyState to provide better error messages
+      if (eventSource.readyState === EventSource.CONNECTING) {
+        setError('Connecting to log stream...');
+      } else if (eventSource.readyState === EventSource.CLOSED) {
+        setError('Connection to log stream was closed');
+      } else {
+        setError('Failed to connect to log stream - check if server is running');
+      }
     };
   };
 
@@ -329,6 +343,22 @@ export default function LiveLogs() {
             <Button variant="outline" onClick={clearLogs}>
               <Trash2 className="h-4 w-4 mr-2" />
               Clear
+            </Button>
+
+            <Button 
+              variant="outline" 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/v1/logs/test', { method: 'POST' });
+                  if (response.ok) {
+                    console.log('Test logs generated successfully');
+                  }
+                } catch (err) {
+                  console.error('Failed to generate test logs:', err);
+                }
+              }}
+            >
+              Generate Test Logs
             </Button>
           </div>
         </CardContent>
