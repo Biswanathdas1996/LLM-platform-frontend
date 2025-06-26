@@ -1,0 +1,191 @@
+# Log API Documentation
+
+This document provides comprehensive documentation for the Log API endpoint in the Local LLM application.
+
+## Overview
+
+The Log API allows you to retrieve recent API and error logs from the Local LLM application. This is useful for monitoring application activity, debugging issues, and tracking API usage patterns.
+
+## Base URL
+
+```
+http://127.0.0.1:5000/api/v1
+```
+
+## Authentication
+
+Currently, no authentication is required for the Log API endpoint.
+
+## Endpoints
+
+### Get Logs
+
+Retrieve recent API and error logs from the application.
+
+**Endpoint:** `GET /logs`
+
+**Full URL:** `http://127.0.0.1:5000/api/v1/logs`
+
+**Method:** `GET`
+
+**Parameters:** None
+
+**Description:** Returns the last 100 lines each of API logs and error logs in JSON format.
+
+#### Sample Request
+
+##### Using curl (Command Line)
+
+```bash
+curl -X GET "http://127.0.0.1:5000/api/v1/logs" \
+  -H "Content-Type: application/json"
+```
+
+
+
+#### Sample Response
+
+**Status Code:** `200 OK`
+
+**Content-Type:** `application/json`
+
+```json
+{
+  "api_logs": [
+    {
+      "timestamp": "2025-06-26T06:32:29.626073",
+      "level": "INFO",
+      "message": "Incoming request",
+      "module": "logger",
+      "request_id": "req_1750919549626073",
+      "method": "GET",
+      "url": "http://127.0.0.1:5000/api/v1/health",
+      "endpoint": "api.health_check",
+      "remote_addr": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    },
+    {
+      "timestamp": "2025-06-26T06:32:29.628145",
+      "level": "INFO",
+      "message": "Request completed",
+      "module": "logger",
+      "request_id": "req_1750919549626073",
+      "method": "GET",
+      "url": "http://127.0.0.1:5000/api/v1/health",
+      "endpoint": "api.health_check",
+      "remote_addr": "127.0.0.1",
+      "status_code": 200,
+      "response_time": 2.072
+    },
+    {
+      "timestamp": "2025-06-26T06:33:15.442891",
+      "level": "INFO",
+      "message": "Incoming request",
+      "module": "logger",
+      "request_id": "req_1750965442891",
+      "method": "POST",
+      "url": "http://127.0.0.1:5000/api/v1/generate",
+      "endpoint": "api.generate_response",
+      "remote_addr": "127.0.0.1",
+      "user_agent": "curl/7.68.0"
+    }
+  ],
+  "error_logs": [
+    {
+      "timestamp": "2025-06-26T06:30:15.123456",
+      "level": "ERROR",
+      "message": "Model file not found",
+      "module": "model_manager",
+      "request_id": "req_1750865123456",
+      "error_type": "FileNotFoundError",
+      "error_details": "Model file 'nonexistent-model.gguf' not found in models directory",
+      "stack_trace": "Traceback (most recent call last):\n  File \"models/model_manager.py\", line 45, in load_model\n    raise FileNotFoundError(f\"Model file '{model_name}' not found\")\nFileNotFoundError: Model file 'nonexistent-model.gguf' not found"
+    }
+  ]
+}
+```
+
+#### Response Fields
+
+| Field        | Type  | Description                                   |
+| ------------ | ----- | --------------------------------------------- |
+| `api_logs`   | Array | Array of API log entries (last 100 entries)   |
+| `error_logs` | Array | Array of error log entries (last 100 entries) |
+
+##### API Log Entry Fields
+
+| Field           | Type    | Description                                        |
+| --------------- | ------- | -------------------------------------------------- |
+| `timestamp`     | String  | ISO 8601 formatted timestamp of the log entry      |
+| `level`         | String  | Log level (INFO, WARNING, ERROR, etc.)             |
+| `message`       | String  | Human-readable log message                         |
+| `module`        | String  | Module or component that generated the log         |
+| `request_id`    | String  | Unique identifier for the request                  |
+| `method`        | String  | HTTP method (GET, POST, etc.)                      |
+| `url`           | String  | Full request URL                                   |
+| `endpoint`      | String  | Flask endpoint name                                |
+| `remote_addr`   | String  | Client IP address                                  |
+| `user_agent`    | String  | Client user agent string (optional)                |
+| `status_code`   | Integer | HTTP response status code (in completion logs)     |
+| `response_time` | Float   | Response time in milliseconds (in completion logs) |
+
+##### Error Log Entry Fields
+
+| Field           | Type   | Description                                          |
+| --------------- | ------ | ---------------------------------------------------- |
+| `timestamp`     | String | ISO 8601 formatted timestamp of the error            |
+| `level`         | String | Log level (usually ERROR or CRITICAL)                |
+| `message`       | String | Error message summary                                |
+| `module`        | String | Module where the error occurred                      |
+| `request_id`    | String | Request ID associated with the error (if applicable) |
+| `error_type`    | String | Python exception type                                |
+| `error_details` | String | Detailed error description                           |
+| `stack_trace`   | String | Full Python stack trace (optional)                   |
+
+## Error Responses
+
+### Server Error
+
+**Status Code:** `500 Internal Server Error`
+
+```json
+{
+  "error": "Failed to retrieve logs: [error details]"
+}
+```
+
+### Service Unavailable
+
+**Status Code:** `503 Service Unavailable`
+
+```json
+{
+  "error": "Log service temporarily unavailable"
+}
+```
+
+## Usage Examples
+
+### Monitor Recent Activity
+
+
+
+## Integration Tips
+
+1. **Polling**: You can poll this endpoint regularly to monitor application health
+2. **Log Rotation**: The API returns only the last 100 entries of each log type
+3. **Timestamps**: All timestamps are in ISO 8601 format with microsecond precision
+4. **Request Tracking**: Use the `request_id` field to correlate related log entries
+5. **Error Analysis**: Error logs include stack traces for debugging
+
+## Rate Limiting
+
+Currently, there are no rate limits enforced on the Log API endpoint. However, frequent polling should be done responsibly to avoid impacting application performance.
+
+## Notes
+
+- Log files are stored in the `./logs` directory relative to the application root
+- The API returns structured JSON logs, not raw log file content
+- Both API and error logs are returned in a single response
+- Log entries are ordered by timestamp (most recent first)
+- Empty arrays are returned if no logs are available

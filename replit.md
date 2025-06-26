@@ -114,6 +114,8 @@ Changelog:
 - June 26, 2025. Added ApiError component and graceful error handling for when Local LLM API is unavailable, providing clear user feedback and retry options
 - June 26, 2025. Implemented Live Logs feature with real-time Server-Sent Events (SSE) streaming, request/response logging middleware, statistics dashboard, filtering capabilities, and export functionality
 - June 26, 2025. Updated Live Logs to integrate with external LLM API `/api/v1/logs` endpoint via direct client-side calls, removing server dependency for external log fetching
+- June 26, 2025. Fixed Badge component null safety issues in LiveLogs.tsx to prevent React crashes when log.type is undefined
+- June 26, 2025. Implemented External Logs page for monitoring Local LLM API activity at 127.0.0.1:5000, featuring comprehensive log analysis, filtering, search, statistics dashboard, and export capabilities for both API and error logs
 
 ## User Preferences
 
