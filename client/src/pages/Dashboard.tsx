@@ -3,7 +3,6 @@ import { ModelUpload } from '@/components/Dashboard/ModelUpload';
 import { ExternalAPIConfig } from '@/components/Dashboard/ExternalAPIConfig';
 import { ModelsList } from '@/components/Dashboard/ModelsList';
 import { RecentActivity } from '@/components/Dashboard/RecentActivity';
-import { DashboardAnalytics } from '@/components/Dashboard/DashboardAnalytics';
 
 export default function Dashboard() {
   return (
@@ -24,8 +23,6 @@ export default function Dashboard() {
           <ModelUpload />
           <ExternalAPIConfig />
         </div>
-
-        <DashboardAnalytics />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <ModelsList />
