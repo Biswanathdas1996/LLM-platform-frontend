@@ -113,6 +113,7 @@ Changelog:
 - June 26, 2025. Added global error handlers for unhandled promise rejections and improved API error handling with retry logic
 - June 26, 2025. Added ApiError component and graceful error handling for when Local LLM API is unavailable, providing clear user feedback and retry options
 - June 26, 2025. Implemented Live Logs feature with real-time Server-Sent Events (SSE) streaming, request/response logging middleware, statistics dashboard, filtering capabilities, and export functionality
+- June 26, 2025. Updated Live Logs to integrate with external LLM API `/api/v1/logs` endpoint via direct client-side calls, removing server dependency for external log fetching
 
 ## User Preferences
 

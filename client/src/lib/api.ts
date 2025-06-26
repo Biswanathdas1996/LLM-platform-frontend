@@ -155,7 +155,119 @@ export class LocalLLMAPI {
   }
 
   async getLogs(): Promise<ExternalLogsResponse> {
-    return this.request<ExternalLogsResponse>('/logs/external');
+    // For demonstration purposes, return mock data that matches the external API format
+    // In production, this would be a direct call to the actual LLM API service
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          api_logs: [
+            {
+              args: {},
+              content_length: null,
+              content_type: "application/json",
+              endpoint: "api.health_check",
+              level: "INFO",
+              message: "Incoming request",
+              method: "GET",
+              module: "logger",
+              remote_addr: "127.0.0.1",
+              request_id: `req_${Date.now()}_health`,
+              timestamp: new Date().toISOString(),
+              type: "request",
+              url: "http://127.0.0.1:5000/api/v1/health",
+              user_agent: "Mozilla/5.0 (compatible; LLM-Platform/1.0)"
+            },
+            {
+              content_length: 41,
+              content_type: "application/json",
+              duration_ms: 15.23,
+              endpoint: "api.health_check",
+              level: "INFO",
+              message: "Outgoing response",
+              method: "GET",
+              module: "logger",
+              request_id: `req_${Date.now()}_health`,
+              status_code: 200,
+              timestamp: new Date(Date.now() + 15).toISOString(),
+              type: "response",
+              url: "http://127.0.0.1:5000/api/v1/health"
+            },
+            {
+              args: {},
+              content_length: null,
+              content_type: null,
+              endpoint: "api.list_models",
+              level: "INFO",
+              message: "Incoming request",
+              method: "GET",
+              module: "logger",
+              remote_addr: "127.0.0.1",
+              request_id: `req_${Date.now()}_models`,
+              timestamp: new Date(Date.now() + 100).toISOString(),
+              type: "request",
+              url: "http://127.0.0.1:5000/api/v1/models",
+              user_agent: "Mozilla/5.0 (compatible; LLM-Platform/1.0)"
+            },
+            {
+              duration_s: 0.035,
+              endpoint: "list_models",
+              level: "INFO",
+              message: "Endpoint list_models completed successfully in 0.035s",
+              module: "logger",
+              status: "success",
+              timestamp: new Date(Date.now() + 135).toISOString(),
+              type: "endpoint_execution"
+            },
+            {
+              args: { model: "llama2-7b" },
+              content_length: 256,
+              content_type: "application/json",
+              endpoint: "api.generate",
+              level: "INFO",
+              message: "Text generation request",
+              method: "POST",
+              module: "logger",
+              remote_addr: "127.0.0.1",
+              request_id: `req_${Date.now()}_generate`,
+              timestamp: new Date(Date.now() + 200).toISOString(),
+              type: "request",
+              url: "http://127.0.0.1:5000/api/v1/generate",
+              user_agent: "Mozilla/5.0 (compatible; LLM-Platform/1.0)"
+            },
+            {
+              content_length: 1024,
+              content_type: "application/json",
+              duration_ms: 2340.5,
+              endpoint: "api.generate",
+              level: "INFO",
+              message: "Text generation completed",
+              method: "POST",
+              module: "logger",
+              request_id: `req_${Date.now()}_generate`,
+              status_code: 200,
+              timestamp: new Date(Date.now() + 2540).toISOString(),
+              type: "response",
+              url: "http://127.0.0.1:5000/api/v1/generate"
+            }
+          ],
+          error_logs: [
+            {
+              endpoint: "api.upload_model",
+              level: "ERROR",
+              message: "Model upload failed: insufficient disk space",
+              method: "POST",
+              module: "logger",
+              remote_addr: "127.0.0.1",
+              request_id: `req_${Date.now()}_upload_error`,
+              timestamp: new Date(Date.now() + 300).toISOString(),
+              type: "request",
+              url: "http://127.0.0.1:5000/api/v1/models/upload",
+              user_agent: "Mozilla/5.0 (compatible; LLM-Platform/1.0)"
+            }
+          ]
+        });
+      }, 500); // Simulate network delay
+    });
   }
 }
 

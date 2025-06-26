@@ -81,7 +81,7 @@ export function useCacheStatus() {
 
 export function useExternalLogs() {
   return useQuery({
-    queryKey: ['/api/v1/logs/external'],
+    queryKey: ['external-logs'],
     queryFn: () => api.getLogs(),
     refetchInterval: 30000, // Refetch every 30 seconds
     retry: 0, // Don't retry if API is unavailable
