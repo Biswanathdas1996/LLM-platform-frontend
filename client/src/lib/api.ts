@@ -41,6 +41,33 @@ export interface CacheStatusResponse {
   count: number;
 }
 
+export interface ExternalLogEntry {
+  args?: any;
+  content_length?: number | null;
+  content_type?: string | null;
+  endpoint: string;
+  level: 'INFO' | 'ERROR' | 'WARN' | 'DEBUG';
+  message: string;
+  method?: string;
+  module: string;
+  remote_addr?: string;
+  request_id?: string;
+  timestamp: string;
+  type: 'request' | 'response' | 'endpoint_execution';
+  url?: string;
+  user_agent?: string;
+  duration_ms?: number;
+  duration_s?: number;
+  status_code?: number;
+  status?: string;
+  response_body?: any;
+}
+
+export interface ExternalLogsResponse {
+  api_logs: ExternalLogEntry[];
+  error_logs: ExternalLogEntry[];
+}
+
 export class LocalLLMAPI {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
@@ -125,6 +152,10 @@ export class LocalLLMAPI {
 
   async getCacheStatus(): Promise<CacheStatusResponse> {
     return this.request<CacheStatusResponse>('/cache/status');
+  }
+
+  async getLogs(): Promise<ExternalLogsResponse> {
+    return this.request<ExternalLogsResponse>('/logs');
   }
 }
 

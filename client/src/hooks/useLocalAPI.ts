@@ -78,3 +78,13 @@ export function useCacheStatus() {
     staleTime: 5000, // Cache for 5 seconds
   });
 }
+
+export function useExternalLogs() {
+  return useQuery({
+    queryKey: ['/api/v1/logs'],
+    queryFn: () => api.getLogs(),
+    refetchInterval: 30000, // Refetch every 30 seconds
+    retry: 0, // Don't retry if API is unavailable
+    staleTime: 10000, // Cache for 10 seconds
+  });
+}

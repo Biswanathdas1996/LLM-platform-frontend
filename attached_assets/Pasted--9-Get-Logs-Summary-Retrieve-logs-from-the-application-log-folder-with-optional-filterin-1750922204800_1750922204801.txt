@@ -1,0 +1,100 @@
+### 9. Get Logs
+
+**Summary:** Retrieve logs from the application log folder with optional filtering.
+
+**Endpoint:** `GET /api/v1/logs`
+
+**Query Parameters:**
+- `type` (optional) - Type of logs to retrieve: `api`, `error`, or `all` (default: `all`)
+- `lines` (optional) - Number of recent log lines to return
+- `hours` (optional) - Filter logs from the last N hours
+
+**CURL Examples:**
+
+```bash
+# Get all logs
+curl -X GET "http://127.0.0.1:5000/api/v1/logs"
+
+# Get only API logs, last 100 lines
+curl -X GET "http://127.0.0.1:5000/api/v1/logs?type=api&lines=100"
+
+# Get error logs from the last 24 hours
+curl -X GET "http://127.0.0.1:5000/api/v1/logs?type=error&hours=24"
+
+# Get logs from the last 2 hours with 50 lines limit
+curl -X GET "http://127.0.0.1:5000/api/v1/logs?type=all&lines=50&hours=2"
+```
+
+**Expected Response:**
+
+```json
+{
+  "logs": {
+    "api": [
+      {
+        "timestamp": "2025-06-26T10:30:00.123Z",
+        "level": "INFO",
+        "type": "request",
+        "method": "POST",
+        "url": "/api/v1/generate",
+        "message": "Request received"
+      },
+      {
+        "timestamp": "2025-06-26T10:30:01.456Z",
+        "level": "INFO",
+        "type": "response",
+        "status_code": 200,
+        "duration_ms": 1333,
+        "message": "Request completed"
+      }
+    ],
+    "error": [
+      {
+        "timestamp": "2025-06-26T10:25:00.789Z",
+        "level": "ERROR",
+        "error_type": "ModelNotFound",
+        "message": "Model not found: invalid-model.gguf"
+      }
+    ]
+  },
+  "summary": {
+    "api_stats": {
+      "total_requests": 15,
+      "avg_response_time": 1250.5,
+      "endpoints": {
+        "/api/v1/generate": 10,
+        "/api/v1/models": 5
+      },
+      "status_codes": {
+        "200": 12,
+        "400": 2,
+        "500": 1
+      }
+    },
+    "error_summary": {
+      "total_errors": 3,
+      "error_types": {
+        "ModelNotFound": 2,
+        "ValidationError": 1
+      }
+    }
+  },
+  "log_files": [
+    {
+      "name": "api.log",
+      "size_bytes": 1048576,
+      "size_mb": 1.0
+    },
+    {
+      "name": "errors.log",
+      "size_bytes": 524288,
+      "size_mb": 0.5
+    }
+  ]
+}
+```
+
+**Status Codes:**
+
+- `200 OK` - Success
+- `500 Internal Server Error` - Failed to retrieve logs
