@@ -74,61 +74,65 @@ export function Sidebar() {
         {/* Primary Navigation */}
         <div className="flex-1 min-h-0" style={{ overflow: 'hidden' }}>
           <div className="space-y-1">
-            {navigation.map((item) => {
+            {navigation.map((item, index) => {
               const isActive = location === item.href;
               const Icon = item.icon;
               
               return (
-                <Link key={item.name} href={item.href}>
-                  <div className={`
-                    flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg border border-primary/20' 
-                      : 'text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:text-foreground hover:shadow-sm'
-                    }
-                  `}>
-                    <Icon className="h-4 w-4 mr-3" />
-                    <span className="flex-1">{item.name}</span>
-                    
-                    {item.name === 'Models' && modelsData && (
-                      <Badge 
-                        variant={isActive ? "secondary" : "outline"} 
-                        className={`ml-2 text-xs ${isActive ? 'bg-white/20 text-white border-white/30' : ''}`}
+                <div key={item.name}>
+                  <Link href={item.href}>
+                    <div className={`
+                      flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
+                      ${isActive 
+                        ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg border border-primary/20' 
+                        : 'text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:text-foreground hover:shadow-sm'
+                      }
+                    `}>
+                      <Icon className="h-4 w-4 mr-3" />
+                      <span className="flex-1">{item.name}</span>
+                      
+                      {item.name === 'Models' && modelsData && (
+                        <Badge 
+                          variant={isActive ? "secondary" : "outline"} 
+                          className={`ml-2 text-xs ${isActive ? 'bg-white/20 text-white border-white/30' : ''}`}
+                        >
+                          {modelsData.count}
+                        </Badge>
+                      )}
+                    </div>
+                  </Link>
+                  
+                  {/* Quick Actions - positioned after External Logs */}
+                  {item.name === 'External Logs' && (
+                    <div className="space-y-2 mt-3 mb-2 border-t border-primary/20 bg-gradient-to-b from-primary/5 to-transparent rounded-lg p-2" style={{ overflow: 'hidden' }}>
+                      <h3 className="text-xs font-semibold text-primary px-2 mb-2 uppercase tracking-wider">Quick Actions</h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 hover:from-emerald-500/25 hover:to-cyan-500/25 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-200 hover:shadow-sm"
+                        onClick={handleSync}
+                        disabled={syncMutation.isPending}
                       >
-                        {modelsData.count}
-                      </Badge>
-                    )}
-                  </div>
-                </Link>
+                        <RotateCcw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                        Sync Models
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start bg-gradient-to-r from-orange-500/15 to-red-500/15 hover:from-orange-500/25 hover:to-red-500/25 border-orange-500/40 text-orange-700 dark:text-orange-300 hover:text-orange-800 dark:hover:text-orange-200 transition-all duration-200 hover:shadow-sm"
+                        onClick={handleClearCache}
+                        disabled={clearCacheMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear Cache
+                      </Button>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
-        </div>
-        
-        {/* Quick Actions */}
-        <div className="space-y-2 pt-3 mt-2 border-t border-primary/20 bg-gradient-to-b from-primary/5 to-transparent rounded-lg p-2" style={{ flexShrink: 0, overflow: 'hidden' }}>
-          <h3 className="text-xs font-semibold text-primary px-2 mb-2 uppercase tracking-wider">Quick Actions</h3>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start bg-gradient-to-r from-emerald-500/15 to-cyan-500/15 hover:from-emerald-500/25 hover:to-cyan-500/25 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 transition-all duration-200 hover:shadow-sm"
-            onClick={handleSync}
-            disabled={syncMutation.isPending}
-          >
-            <RotateCcw className={`h-4 w-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-            Sync Models
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start bg-gradient-to-r from-orange-500/15 to-red-500/15 hover:from-orange-500/25 hover:to-red-500/25 border-orange-500/40 text-orange-700 dark:text-orange-300 hover:text-orange-800 dark:hover:text-orange-200 transition-all duration-200 hover:shadow-sm"
-            onClick={handleClearCache}
-            disabled={clearCacheMutation.isPending}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear Cache
-          </Button>
         </div>
       </nav>
     </aside>
