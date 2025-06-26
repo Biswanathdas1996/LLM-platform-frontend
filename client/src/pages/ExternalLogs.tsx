@@ -179,7 +179,7 @@ export default function ExternalLogs() {
         <Badge className={`text-xs shrink-0 ${getLevelColor(log.level)}`}>
           {log.level}
         </Badge>
-        <Badge variant="outline" className="text-xs shrink-0">
+        <Badge variant="outline" className="text-xs shrink-0 bg-blue-900/30 border-blue-400 text-blue-200 font-medium">
           {log.module}
         </Badge>
         {log.request_id && (
