@@ -112,29 +112,61 @@ export function AnalyticsDashboard() {
 
     const allLogs = [...filteredLogs.api_logs, ...filteredLogs.error_logs];
     
-    // Filter logs by type to avoid double counting
-    const responseLogs = filteredLogs.api_logs.filter(log => log.type === 'response' || log.type === 'endpoint_execution');
+    // Separate logs by type for accurate counting
+    const responseLogs = filteredLogs.api_logs.filter(log => log.type === 'response');
+    const endpointExecutionLogs = filteredLogs.api_logs.filter(log => log.type === 'endpoint_execution');
     const requestLogs = filteredLogs.api_logs.filter(log => log.type === 'request');
     
-    const totalRequests = responseLogs.length;
-    const errorCount = filteredLogs.error_logs.length + filteredLogs.api_logs.filter(log => log.level === 'ERROR').length;
+    // Use unique request_ids to count actual requests (each request should have corresponding response)
+    const uniqueRequestIds = new Set(requestLogs.map(log => log.request_id).filter(Boolean));
+    const completedRequests = responseLogs.filter(log => uniqueRequestIds.has(log.request_id!));
+    
+    const totalRequests = completedRequests.length;
+    const errorCount = completedRequests.filter(log => log.status_code && log.status_code >= 400).length;
     const errorRate = totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0;
 
-    // Calculate average response time from duration_ms or duration_s
-    const responseTimes = responseLogs
+    // Calculate average response time from completed requests
+    const responseTimes = completedRequests
       .map(log => {
         if (log.duration_ms) return log.duration_ms;
+        return null;
+      })
+      .filter(time => time !== null) as number[];
+    
+    // Also include endpoint execution times
+    const endpointTimes = endpointExecutionLogs
+      .map(log => {
         if (log.duration_s) return log.duration_s * 1000;
         return null;
       })
       .filter(time => time !== null) as number[];
     
-    const avgResponseTime = responseTimes.length > 0 
-      ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
+    const allResponseTimes = [...responseTimes, ...endpointTimes];
+    const avgResponseTime = allResponseTimes.length > 0 
+      ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length 
       : 0;
 
-    // Peak hour analysis
-    const hourCounts = responseLogs.reduce((acc, log) => {
+    // Debug output for data verification
+    console.log('Analytics Data Verification:', {
+      totalApiLogs: filteredLogs.api_logs.length,
+      responseLogs: responseLogs.length,
+      endpointExecutionLogs: endpointExecutionLogs.length,
+      requestLogs: requestLogs.length,
+      uniqueRequestIds: uniqueRequestIds.size,
+      completedRequests: completedRequests.length,
+      totalRequests,
+      errorCount,
+      errorRate: errorRate.toFixed(2) + '%',
+      avgResponseTime: avgResponseTime.toFixed(2) + 'ms',
+      sampleLogs: {
+        firstRequest: requestLogs[0],
+        firstResponse: responseLogs[0],
+        firstEndpointExecution: endpointExecutionLogs[0]
+      }
+    });
+
+    // Peak hour analysis using completed requests
+    const hourCounts = completedRequests.reduce((acc, log) => {
       const hour = format(parseISO(log.timestamp), 'HH:00');
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
@@ -142,28 +174,40 @@ export function AnalyticsDashboard() {
     const peakHour = Object.entries(hourCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
 
-    // Top endpoints - extract from URL or use endpoint field
-    const endpointStats = responseLogs.reduce((acc, log) => {
-      let endpoint = log.endpoint;
-      if (!endpoint && log.url) {
-        // Extract endpoint from URL path
-        const urlPath = log.url.split('/').pop() || 'unknown';
-        endpoint = urlPath.split('?')[0]; // Remove query params
-      }
-      endpoint = endpoint || 'unknown';
+    // Top endpoints - use endpoint execution logs for accurate endpoint performance
+    const endpointStats = endpointExecutionLogs.reduce((acc, log) => {
+      const endpoint = log.endpoint || 'unknown';
       
       if (!acc[endpoint]) {
         acc[endpoint] = { count: 0, totalTime: 0, times: [] };
       }
       acc[endpoint].count++;
       
-      const duration = log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
+      const duration = log.duration_s ? log.duration_s * 1000 : null;
       if (duration) {
         acc[endpoint].totalTime += duration;
         acc[endpoint].times.push(duration);
       }
       return acc;
     }, {} as Record<string, { count: number; totalTime: number; times: number[] }>);
+
+    // Also include response times from completed requests
+    completedRequests.forEach(log => {
+      let endpoint = log.endpoint;
+      if (endpoint && endpoint.startsWith('api.')) {
+        endpoint = endpoint.replace('api.', ''); // Clean up endpoint name
+      }
+      endpoint = endpoint || 'unknown';
+      
+      if (!endpointStats[endpoint]) {
+        endpointStats[endpoint] = { count: 0, totalTime: 0, times: [] };
+      }
+      // Don't double count, just add timing data if available
+      if (log.duration_ms && !endpointStats[endpoint].times.includes(log.duration_ms)) {
+        endpointStats[endpoint].times.push(log.duration_ms);
+        endpointStats[endpoint].totalTime += log.duration_ms;
+      }
+    });
 
     const topEndpoints = Object.entries(endpointStats)
       .map(([endpoint, stats]) => ({
@@ -174,9 +218,9 @@ export function AnalyticsDashboard() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Status codes distribution
-    const statusCodeCounts = responseLogs.reduce((acc, log) => {
-      const code = log.status_code || (log.level === 'ERROR' ? 500 : 200);
+    // Status codes distribution from completed requests only
+    const statusCodeCounts = completedRequests.reduce((acc, log) => {
+      const code = log.status_code || 200;
       acc[code] = (acc[code] || 0) + 1;
       return acc;
     }, {} as Record<number, number>);
@@ -189,9 +233,9 @@ export function AnalyticsDashboard() {
       }))
       .sort((a, b) => b.count - a.count);
 
-    // Time series data (hourly buckets)
+    // Time series data (hourly buckets) using completed requests for accuracy
     const timeSeriesMap = new Map<string, { requests: number; errors: number; times: number[] }>();
-    responseLogs.forEach(log => {
+    completedRequests.forEach(log => {
       const hourKey = format(parseISO(log.timestamp), 'yyyy-MM-dd HH:00');
       if (!timeSeriesMap.has(hourKey)) {
         timeSeriesMap.set(hourKey, { requests: 0, errors: 0, times: [] });
@@ -199,12 +243,11 @@ export function AnalyticsDashboard() {
       const bucket = timeSeriesMap.get(hourKey)!;
       bucket.requests++;
       
-      const duration = log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
-      if (duration) {
-        bucket.times.push(duration);
+      if (log.duration_ms) {
+        bucket.times.push(log.duration_ms);
       }
       
-      if (log.level === 'ERROR' || (log.status_code && log.status_code >= 400)) {
+      if (log.status_code && log.status_code >= 400) {
         bucket.errors++;
       }
     });
@@ -293,14 +336,14 @@ export function AnalyticsDashboard() {
       }))
       .sort((a, b) => b.requests - a.requests);
 
-    // Hourly pattern
+    // Hourly pattern using completed requests for accuracy
     const hourlyPattern = Array.from({ length: 24 }, (_, hour) => {
-      const hourRequests = responseLogs.filter(log => 
+      const hourRequests = completedRequests.filter(log => 
         parseInt(format(parseISO(log.timestamp), 'H')) === hour
       );
-      const hourErrors = allLogs.filter(log => 
+      const hourErrors = completedRequests.filter(log => 
         parseInt(format(parseISO(log.timestamp), 'H')) === hour &&
-        (log.level === 'ERROR' || (log.status_code && log.status_code >= 400))
+        log.status_code && log.status_code >= 400
       );
       return {
         hour,
