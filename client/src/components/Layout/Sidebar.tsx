@@ -21,7 +21,6 @@ const navigation = [
   { name: 'Playground', href: '/playground', icon: PlayCircle },
   { name: 'External APIs', href: '/external-apis', icon: Plug },
   { name: 'Cache Status', href: '/cache', icon: HardDrive },
-  { name: 'Live Logs', href: '/logs', icon: FileText },
   { name: 'External Logs', href: '/external-logs', icon: Server },
 ];
 
