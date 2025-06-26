@@ -72,7 +72,16 @@ export default function ExternalLogs() {
   }, []);
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString();
+    return new Date(timestamp).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
   };
 
   const getLevelColor = (level: string) => {
@@ -269,7 +278,16 @@ export default function ExternalLogs() {
           <p className="text-gray-600 mt-1">Monitor Local LLM API activity and errors</p>
           {lastRefresh && (
             <p className="text-xs text-gray-500 mt-1">
-              Last updated: {lastRefresh.toLocaleString()}
+              Last updated: {lastRefresh.toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+              })}
             </p>
           )}
         </div>
