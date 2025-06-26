@@ -21,6 +21,11 @@ interface LogEntry {
   user_agent?: string;
   status_code?: number;
   response_time?: number;
+  duration_ms?: number;
+  content_type?: string;
+  content_length?: number;
+  response_body?: any;
+  request_body?: any;
   error_type?: string;
   error_details?: string;
   stack_trace?: string;
@@ -192,7 +197,7 @@ export default function ExternalLogs() {
           {log.endpoint && (
             <div>Endpoint: <span className="text-yellow-400">{log.endpoint}</span></div>
           )}
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             {log.status_code && (
               <span className={getStatusColor(log.status_code)}>
                 Status: {log.status_code}
@@ -203,12 +208,53 @@ export default function ExternalLogs() {
                 Response: {log.response_time.toFixed(2)}ms
               </span>
             )}
+            {log.duration_ms && (
+              <span className="text-blue-400">
+                Duration: {log.duration_ms.toFixed(2)}ms
+              </span>
+            )}
+            {log.content_type && (
+              <span className="text-green-400">
+                Type: {log.content_type}
+              </span>
+            )}
+            {log.content_length && (
+              <span className="text-orange-400">
+                Size: {log.content_length} bytes
+              </span>
+            )}
             {log.remote_addr && (
               <span className="text-purple-400">
                 From: {log.remote_addr}
               </span>
             )}
           </div>
+          
+          {/* Request/Response Bodies */}
+          {(log.request_body || log.response_body) && (
+            <div className="mt-2 space-y-2">
+              {log.request_body && (
+                <details className="text-cyan-300">
+                  <summary className="cursor-pointer font-semibold">Request Body</summary>
+                  <pre className="bg-cyan-900/20 p-2 rounded text-cyan-200 mt-1 overflow-x-auto text-xs">
+                    {typeof log.request_body === 'string' 
+                      ? log.request_body 
+                      : JSON.stringify(log.request_body, null, 2)}
+                  </pre>
+                </details>
+              )}
+              {log.response_body && (
+                <details className="text-green-300">
+                  <summary className="cursor-pointer font-semibold">Response Body</summary>
+                  <pre className="bg-green-900/20 p-2 rounded text-green-200 mt-1 overflow-x-auto text-xs">
+                    {typeof log.response_body === 'string' 
+                      ? log.response_body 
+                      : JSON.stringify(log.response_body, null, 2)}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
         </div>
       )}
       
