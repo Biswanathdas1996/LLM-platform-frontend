@@ -68,12 +68,12 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 border-r bg-card/95 backdrop-blur-sm h-screen hidden lg:block relative border-border/50 overflow-hidden">
+    <aside className="w-64 border-r bg-card/95 backdrop-blur-sm h-screen hidden lg:block relative border-border/50" style={{ height: '100vh', overflow: 'hidden' }}>
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5" />
-      <nav className="px-4 py-2 relative z-10 h-full flex flex-col overflow-hidden">
+      <nav className="px-4 py-2 relative z-10 flex flex-col" style={{ height: 'calc(100vh - 0px)', overflow: 'hidden' }}>
         {/* Primary Navigation */}
-        <div className="flex-1 min-h-0 overflow-hidden pb-2">
-          <div className="space-y-1 h-full max-h-full overflow-hidden">
+        <div className="flex-1 min-h-0" style={{ overflow: 'hidden' }}>
+          <div className="space-y-1">
             {navigation.map((item) => {
               const isActive = location === item.href;
               const Icon = item.icon;
@@ -106,7 +106,7 @@ export function Sidebar() {
         </div>
         
         {/* Quick Actions */}
-        <div className="space-y-1.5 pt-2 mt-1 border-t border-border/50 flex-shrink-0">
+        <div className="space-y-1.5 pt-2 mt-1 border-t border-border/50" style={{ flexShrink: 0, overflow: 'hidden' }}>
           <h3 className="text-xs font-medium text-muted-foreground px-3 mb-1 uppercase tracking-wider">Quick Actions</h3>
           <Button
             variant="outline"
