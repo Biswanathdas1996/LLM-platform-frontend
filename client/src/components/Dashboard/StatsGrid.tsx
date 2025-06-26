@@ -7,25 +7,29 @@ const statsData = [
   {
     name: 'Local Models',
     icon: Box,
-    color: 'text-blue-500',
+    color: 'text-white',
+    bgGradient: 'bg-gradient-to-br from-blue-500 to-purple-600',
     key: 'localModels',
   },
   {
     name: 'External APIs',
     icon: Cloud,
-    color: 'text-purple-500',
+    color: 'text-white',
+    bgGradient: 'bg-gradient-to-br from-purple-500 to-pink-600',
     key: 'externalAPIs',
   },
   {
     name: 'Cached Models',
     icon: HardDrive,
-    color: 'text-emerald-500',
+    color: 'text-white',
+    bgGradient: 'bg-gradient-to-br from-emerald-500 to-cyan-600',
     key: 'cachedModels',
   },
   {
     name: 'Requests Today',
     icon: TrendingUp,
-    color: 'text-amber-500',
+    color: 'text-white',
+    bgGradient: 'bg-gradient-to-br from-amber-500 to-orange-600',
     key: 'requestsToday',
   },
 ];
@@ -60,10 +64,10 @@ export function StatsGrid() {
                         (item.key === 'cachedModels' && cacheError);
         
         return (
-          <Card key={item.name} className="modern-card">
-            <CardContent className="p-4">
+          <Card key={item.name} className="modern-card overflow-hidden">
+            <CardContent className="p-4 relative">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-muted rounded-md">
+                <div className={`p-2 rounded-md ${item.bgGradient} shadow-lg`}>
                   <Icon className={`h-4 w-4 ${item.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">

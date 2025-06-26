@@ -17,7 +17,7 @@ export function TopNavigation() {
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               <Brain className="text-primary h-5 w-5" />
-              <h1 className="text-lg font-semibold text-foreground">LLM Platform</h1>
+              <h1 className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">LLM Platform</h1>
             </div>
           </div>
           

@@ -81,10 +81,10 @@ export function Sidebar() {
             return (
               <Link key={item.name} href={item.href}>
                 <div className={`
-                  flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer
+                  flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
                   ${isActive 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg' 
+                    : 'text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:text-foreground'
                   }
                 `}>
                   <Icon className="h-4 w-4 mr-3" />
@@ -107,7 +107,7 @@ export function Sidebar() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start"
+            className="w-full justify-start bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 hover:from-emerald-500/20 hover:to-cyan-500/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
             onClick={handleSync}
             disabled={syncMutation.isPending}
           >
@@ -118,7 +118,7 @@ export function Sidebar() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start"
+            className="w-full justify-start bg-gradient-to-r from-orange-500/10 to-red-500/10 hover:from-orange-500/20 hover:to-red-500/20 border-orange-500/30 text-orange-600 dark:text-orange-400"
             onClick={handleClearCache}
             disabled={clearCacheMutation.isPending}
           >
