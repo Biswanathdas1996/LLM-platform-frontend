@@ -230,7 +230,8 @@ export default function LiveLogs() {
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type: string | undefined) => {
+    if (!type) return 'bg-gray-500 text-white';
     switch (type) {
       case 'request': return 'bg-green-500 text-white';
       case 'response': return 'bg-purple-500 text-white';
@@ -249,9 +250,11 @@ export default function LiveLogs() {
         <Badge className={`text-xs shrink-0 ${getLevelColor(log.level)}`}>
           {log.level}
         </Badge>
-        <Badge className={`text-xs shrink-0 ${getTypeColor(log.type)}`}>
-          {log.type}
-        </Badge>
+        {log.type && (
+          <Badge className={`text-xs shrink-0 ${getTypeColor(log.type)}`}>
+            {log.type}
+          </Badge>
+        )}
         <span className="flex-1">{log.message}</span>
       </div>
       
