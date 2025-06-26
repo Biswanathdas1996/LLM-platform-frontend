@@ -8,7 +8,8 @@ import {
   Trash2,
   FileText,
   Server,
-  BookOpen
+  BookOpen,
+  BarChart3
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ const navigation = [
   { name: 'Cache Status', href: '/cache', icon: HardDrive },
   { name: 'API Docs', href: '/api-docs', icon: BookOpen },
   { name: 'External Logs', href: '/external-logs', icon: Server },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 export function Sidebar() {

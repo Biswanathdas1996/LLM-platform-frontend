@@ -15,6 +15,7 @@ import ExternalAPIs from "@/pages/ExternalAPIs";
 import CacheStatus from "@/pages/CacheStatus";
 import ApiDocumentation from "@/pages/ApiDocumentation";
 import ExternalLogs from "@/pages/ExternalLogs";
+import Analytics from "@/pages/Analytics";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -36,6 +37,7 @@ function AppContent() {
               <Route path="/cache" component={CacheStatus} />
               <Route path="/api-docs" component={ApiDocumentation} />
               <Route path="/external-logs" component={ExternalLogs} />
+              <Route path="/analytics" component={Analytics} />
               <Route component={NotFound} />
             </Switch>
           </div>
