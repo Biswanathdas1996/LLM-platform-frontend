@@ -155,7 +155,7 @@ export class LocalLLMAPI {
   }
 
   async getLogs(): Promise<ExternalLogsResponse> {
-    return this.request<ExternalLogsResponse>('/logs');
+    return this.request<ExternalLogsResponse>('/logs/external');
   }
 }
 

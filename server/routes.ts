@@ -218,7 +218,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requestLogger(req, res, next);
   });
 
-  // Live Logs API endpoints
+  // External LLM API logs endpoint - using specific route to avoid conflicts
+  app.get('/api/v1/logs/external', (req: Request, res: Response) => {
+    // Return mock data matching the external API format from the sample
+    const mockResponse = {
+      api_logs: [
+        {
+          args: {},
+          content_length: null,
+          content_type: "application/json",
+          endpoint: "api.health_check",
+          level: "INFO" as const,
+          message: "Incoming request",
+          method: "GET",
+          module: "logger",
+          remote_addr: "127.0.0.1",
+          request_id: `req_${Date.now()}_health`,
+          timestamp: new Date().toISOString(),
+          type: "request" as const,
+          url: "http://127.0.0.1:5000/api/v1/health",
+          user_agent: "Mozilla/5.0 (compatible; LLM-Platform/1.0)"
+        },
+        {
+          content_length: 41,
+          content_type: "application/json",
+          duration_ms: 15.23,
+          endpoint: "api.health_check",
+          level: "INFO" as const,
+          message: "Outgoing response",
+          method: "GET",
+          module: "logger",
+          request_id: `req_${Date.now()}_health`,
+          status_code: 200,
+          timestamp: new Date(Date.now() + 15).toISOString(),
+          type: "response" as const,
+          url: "http://127.0.0.1:5000/api/v1/health"
+        },
+        {
+          args: {},
+          content_length: null,
+          content_type: null,
+          endpoint: "api.list_models",
+          level: "INFO" as const,
+          message: "Incoming request",
+          method: "GET",
+          module: "logger",
+          remote_addr: "127.0.0.1",
+          request_id: `req_${Date.now()}_models`,
+          timestamp: new Date(Date.now() + 100).toISOString(),
+          type: "request" as const,
+          url: "http://127.0.0.1:5000/api/v1/models",
+          user_agent: "Mozilla/5.0 (compatible; LLM-Platform/1.0)"
+        },
+        {
+          duration_s: 0.035,
+          endpoint: "list_models",
+          level: "INFO" as const,
+          message: "Endpoint list_models completed successfully in 0.035s",
+          module: "logger",
+          status: "success",
+          timestamp: new Date(Date.now() + 135).toISOString(),
+          type: "endpoint_execution" as const
+        }
+      ],
+      error_logs: []
+    };
+
+    res.json(mockResponse);
+  });
+
+  // Other Live Logs API endpoints
   app.get('/api/v1/logs/recent', (req: Request, res: Response) => {
     const lines = req.query.lines ? parseInt(req.query.lines as string) : 100;
     const type = req.query.type as string || 'all';
