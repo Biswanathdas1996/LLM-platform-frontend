@@ -44,6 +44,7 @@ export default function ExternalLogs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
+  const [requestIdFilter, setRequestIdFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('api');
 
   const fetchLogs = async () => {
@@ -121,8 +122,9 @@ export default function ExternalLogs() {
       
       const matchesLevel = levelFilter === 'all' || log.level.toUpperCase() === levelFilter.toUpperCase();
       const matchesModule = moduleFilter === 'all' || log.module === moduleFilter;
+      const matchesRequestId = requestIdFilter === 'all' || log.request_id === requestIdFilter;
       
-      return matchesSearch && matchesLevel && matchesModule;
+      return matchesSearch && matchesLevel && matchesModule && matchesRequestId;
     });
   };
 
@@ -130,6 +132,12 @@ export default function ExternalLogs() {
     if (!logsData) return [];
     const allLogs = [...logsData.api_logs, ...logsData.error_logs];
     return Array.from(new Set(allLogs.map(log => log.module))).sort();
+  };
+
+  const getUniqueRequestIds = (): string[] => {
+    if (!logsData) return [];
+    const allLogs = [...logsData.api_logs, ...logsData.error_logs];
+    return Array.from(new Set(allLogs.map(log => log.request_id).filter((id): id is string => Boolean(id)))).sort();
   };
 
   const exportLogs = (logType: 'api' | 'error' | 'all') => {
@@ -475,6 +483,20 @@ export default function ExternalLogs() {
                 <SelectItem value="all">All Modules</SelectItem>
                 {getUniqueModules().map(module => (
                   <SelectItem key={module} value={module}>{module}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={requestIdFilter} onValueChange={setRequestIdFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Request ID" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Request IDs</SelectItem>
+                {getUniqueRequestIds().map(requestId => (
+                  <SelectItem key={requestId} value={requestId}>
+                    {requestId}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
