@@ -60,194 +60,27 @@ export function AnalyticsDashboard() {
   const fetchLogs = async () => {
     setIsLoading(true);
     try {
-      // Generate real log data by making actual API calls to create authentic activity
-      const logData = await generateRealLogData();
+      // Fetch real log data from the API endpoint
+      const response = await fetch('http://127.0.0.1:5000/api/v1/logs', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch logs: ${response.status} ${response.statusText}`);
+      }
+
+      const logData = await response.json();
       setLogs(logData);
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Failed to fetch logs:', error);
+      setLogs({ api_logs: [], error_logs: [] });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const generateRealLogData = async () => {
-    const apiLogs: ExternalLogEntry[] = [];
-    const errorLogs: ExternalLogEntry[] = [];
-    
-    // Generate authentic log data by making real API calls
-    const endpoints = [
-      { path: '/api/v1/health', method: 'GET' },
-      { path: '/api/v1/models', method: 'GET' },
-      { path: '/api/v1/cache/status', method: 'GET' }
-    ];
-    
-    // Make several API calls to generate real request/response logs
-    for (let i = 0; i < 10; i++) {
-      const endpoint = endpoints[Math.floor(Math.random() * endpoints.length)];
-      const startTime = Date.now();
-      const requestId = `req_${startTime}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      try {
-        const response = await fetch(endpoint.path);
-        const endTime = Date.now();
-        const duration = endTime - startTime;
-        
-        // Create request log
-        apiLogs.push({
-          timestamp: new Date(startTime).toISOString(),
-          level: 'INFO',
-          message: `Incoming ${endpoint.method} request`,
-          module: 'analytics_generator',
-          request_id: requestId,
-          method: endpoint.method,
-          url: `http://localhost:5000${endpoint.path}`,
-          endpoint: endpoint.path.split('/').pop() || 'unknown',
-          remote_addr: '127.0.0.1',
-          user_agent: 'Analytics Dashboard Generator',
-          type: 'request',
-          content_type: endpoint.method === 'POST' ? 'application/json' : undefined
-        });
-        
-        // Create response log
-        if (response.ok) {
-          apiLogs.push({
-            timestamp: new Date(endTime).toISOString(),
-            level: 'INFO',
-            message: `${endpoint.method} request completed successfully`,
-            module: 'analytics_generator',
-            request_id: requestId,
-            method: endpoint.method,
-            url: `http://localhost:5000${endpoint.path}`,
-            endpoint: endpoint.path.split('/').pop() || 'unknown',
-            status_code: response.status,
-            duration_ms: duration,
-            type: 'response',
-            content_type: 'application/json',
-            content_length: 250 + Math.floor(Math.random() * 1000)
-          });
-        } else {
-          errorLogs.push({
-            timestamp: new Date(endTime).toISOString(),
-            level: 'ERROR',
-            message: `${endpoint.method} request failed with status ${response.status}`,
-            module: 'analytics_generator',
-            request_id: requestId,
-            method: endpoint.method,
-            url: `http://localhost:5000${endpoint.path}`,
-            endpoint: endpoint.path.split('/').pop() || 'unknown',
-            status_code: response.status,
-            duration_ms: duration,
-            type: 'response'
-          });
-        }
-      } catch (error) {
-        const endTime = Date.now();
-        const duration = endTime - startTime;
-        
-        errorLogs.push({
-          timestamp: new Date(endTime).toISOString(),
-          level: 'ERROR',
-          message: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          module: 'analytics_generator',
-          request_id: requestId,
-          method: endpoint.method,
-          url: `http://localhost:5000${endpoint.path}`,
-          endpoint: endpoint.path.split('/').pop() || 'unknown',
-          status_code: 500,
-          duration_ms: duration,
-          type: 'response'
-        });
-      }
-      
-      // Add some delay between requests
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
-    // Add historical data simulation for better analytics
-    const now = Date.now();
-    for (let day = 0; day < 7; day++) {
-      for (let hour = 0; hour < 24; hour++) {
-        // Simulate peak hours (9-11 AM, 2-4 PM)
-        const isPeakHour = (hour >= 9 && hour <= 11) || (hour >= 14 && hour <= 16);
-        const requestCount = isPeakHour ? Math.floor(Math.random() * 20) + 10 : Math.floor(Math.random() * 8) + 2;
-        
-        for (let req = 0; req < requestCount; req++) {
-          const timestamp = new Date(now - (day * 24 * 60 * 60 * 1000) - (hour * 60 * 60 * 1000) - (Math.random() * 60 * 60 * 1000));
-          const requestId = `req_${timestamp.getTime()}_hist_${Math.random().toString(36).substr(2, 9)}`;
-          
-          const endpoints_hist = [
-            { name: "health_check", method: "GET", avgTime: 15, errorRate: 0.01 },
-            { name: "list_models", method: "GET", avgTime: 35, errorRate: 0.02 },
-            { name: "generate", method: "POST", avgTime: 2500, errorRate: 0.05 },
-            { name: "upload_model", method: "POST", avgTime: 8000, errorRate: 0.08 },
-            { name: "cache_status", method: "GET", avgTime: 25, errorRate: 0.01 }
-          ];
-          
-          const endpoint = endpoints_hist[Math.floor(Math.random() * endpoints_hist.length)];
-          const isError = Math.random() < endpoint.errorRate;
-          const responseTime = endpoint.avgTime + (Math.random() - 0.5) * endpoint.avgTime * 0.3;
-          
-          // Request log
-          apiLogs.push({
-            timestamp: timestamp.toISOString(),
-            level: 'INFO',
-            message: `Incoming ${endpoint.method} request`,
-            module: 'historical_data',
-            request_id: requestId,
-            method: endpoint.method,
-            url: `http://localhost:5000/api/v1/${endpoint.name}`,
-            endpoint: endpoint.name,
-            remote_addr: `192.168.1.${Math.floor(Math.random() * 255)}`,
-            user_agent: ['Mozilla/5.0', 'curl/7.68.0', 'Python/3.9', 'Node.js/18.0'][Math.floor(Math.random() * 4)],
-            type: 'request',
-            content_type: endpoint.method === 'POST' ? 'application/json' : undefined
-          });
-          
-          // Response log
-          if (isError) {
-            errorLogs.push({
-              timestamp: new Date(timestamp.getTime() + responseTime).toISOString(),
-              level: 'ERROR',
-              message: ['Timeout error', 'Authentication failed', 'Rate limit exceeded', 'Model not found'][Math.floor(Math.random() * 4)],
-              module: 'historical_data',
-              request_id: requestId,
-              method: endpoint.method,
-              url: `http://localhost:5000/api/v1/${endpoint.name}`,
-              endpoint: endpoint.name,
-              status_code: [400, 401, 404, 429, 500][Math.floor(Math.random() * 5)],
-              duration_ms: responseTime,
-              type: 'response'
-            });
-          } else {
-            apiLogs.push({
-              timestamp: new Date(timestamp.getTime() + responseTime).toISOString(),
-              level: 'INFO',
-              message: `${endpoint.method} request completed`,
-              module: 'historical_data',
-              request_id: requestId,
-              method: endpoint.method,
-              url: `http://localhost:5000/api/v1/${endpoint.name}`,
-              endpoint: endpoint.name,
-              status_code: [200, 201, 202][Math.floor(Math.random() * 3)],
-              duration_ms: responseTime,
-              type: 'response',
-              content_type: 'application/json',
-              content_length: Math.floor(Math.random() * 2000) + 100
-            });
-          }
-        }
-      }
-    }
-    
-    // Sort by timestamp (newest first)
-    apiLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    errorLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
-    return {
-      api_logs: apiLogs.slice(0, 1000),
-      error_logs: errorLogs.slice(0, 200)
-    };
   };
 
   useEffect(() => {
@@ -278,20 +111,30 @@ export function AnalyticsDashboard() {
     if (!filteredLogs.api_logs.length && !filteredLogs.error_logs.length) return;
 
     const allLogs = [...filteredLogs.api_logs, ...filteredLogs.error_logs];
-    const totalRequests = allLogs.length;
-    const errorCount = filteredLogs.error_logs.length;
+    
+    // Filter logs by type to avoid double counting
+    const responseLogs = filteredLogs.api_logs.filter(log => log.type === 'response' || log.type === 'endpoint_execution');
+    const requestLogs = filteredLogs.api_logs.filter(log => log.type === 'request');
+    
+    const totalRequests = responseLogs.length;
+    const errorCount = filteredLogs.error_logs.length + filteredLogs.api_logs.filter(log => log.level === 'ERROR').length;
     const errorRate = totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0;
 
-    // Calculate average response time
-    const responseTimes = allLogs
-      .filter(log => log.duration_ms)
-      .map(log => log.duration_ms!);
+    // Calculate average response time from duration_ms or duration_s
+    const responseTimes = responseLogs
+      .map(log => {
+        if (log.duration_ms) return log.duration_ms;
+        if (log.duration_s) return log.duration_s * 1000;
+        return null;
+      })
+      .filter(time => time !== null) as number[];
+    
     const avgResponseTime = responseTimes.length > 0 
       ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
       : 0;
 
     // Peak hour analysis
-    const hourCounts = allLogs.reduce((acc, log) => {
+    const hourCounts = responseLogs.reduce((acc, log) => {
       const hour = format(parseISO(log.timestamp), 'HH:00');
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
@@ -299,16 +142,25 @@ export function AnalyticsDashboard() {
     const peakHour = Object.entries(hourCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
 
-    // Top endpoints
-    const endpointStats = allLogs.reduce((acc, log) => {
-      const endpoint = log.endpoint || 'unknown';
+    // Top endpoints - extract from URL or use endpoint field
+    const endpointStats = responseLogs.reduce((acc, log) => {
+      let endpoint = log.endpoint;
+      if (!endpoint && log.url) {
+        // Extract endpoint from URL path
+        const urlPath = log.url.split('/').pop() || 'unknown';
+        endpoint = urlPath.split('?')[0]; // Remove query params
+      }
+      endpoint = endpoint || 'unknown';
+      
       if (!acc[endpoint]) {
         acc[endpoint] = { count: 0, totalTime: 0, times: [] };
       }
       acc[endpoint].count++;
-      if (log.duration_ms) {
-        acc[endpoint].totalTime += log.duration_ms;
-        acc[endpoint].times.push(log.duration_ms);
+      
+      const duration = log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
+      if (duration) {
+        acc[endpoint].totalTime += duration;
+        acc[endpoint].times.push(duration);
       }
       return acc;
     }, {} as Record<string, { count: number; totalTime: number; times: number[] }>);
@@ -323,8 +175,8 @@ export function AnalyticsDashboard() {
       .slice(0, 10);
 
     // Status codes distribution
-    const statusCodeCounts = allLogs.reduce((acc, log) => {
-      const code = log.status_code || 200;
+    const statusCodeCounts = responseLogs.reduce((acc, log) => {
+      const code = log.status_code || (log.level === 'ERROR' ? 500 : 200);
       acc[code] = (acc[code] || 0) + 1;
       return acc;
     }, {} as Record<number, number>);
@@ -333,24 +185,27 @@ export function AnalyticsDashboard() {
       .map(([code, count]) => ({
         code: parseInt(code),
         count,
-        percentage: (count / totalRequests) * 100
+        percentage: totalRequests > 0 ? (count / totalRequests) * 100 : 0
       }))
       .sort((a, b) => b.count - a.count);
 
     // Time series data (hourly buckets)
     const timeSeriesMap = new Map<string, { requests: number; errors: number; times: number[] }>();
-    allLogs.forEach(log => {
+    responseLogs.forEach(log => {
       const hourKey = format(parseISO(log.timestamp), 'yyyy-MM-dd HH:00');
       if (!timeSeriesMap.has(hourKey)) {
         timeSeriesMap.set(hourKey, { requests: 0, errors: 0, times: [] });
       }
       const bucket = timeSeriesMap.get(hourKey)!;
       bucket.requests++;
-      if (filteredLogs.error_logs.includes(log as any)) {
-        bucket.errors++;
+      
+      const duration = log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
+      if (duration) {
+        bucket.times.push(duration);
       }
-      if (log.duration_ms) {
-        bucket.times.push(log.duration_ms);
+      
+      if (log.level === 'ERROR' || (log.status_code && log.status_code >= 400)) {
+        bucket.errors++;
       }
     });
 
@@ -363,9 +218,9 @@ export function AnalyticsDashboard() {
       }))
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
-    // Method distribution
-    const methodCounts = allLogs.reduce((acc, log) => {
-      const method = log.method || 'UNKNOWN';
+    // Method distribution from request logs
+    const methodCounts = requestLogs.reduce((acc, log) => {
+      const method = log.method || 'GET';
       acc[method] = (acc[method] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -374,7 +229,7 @@ export function AnalyticsDashboard() {
       .map(([method, count]) => ({
         method,
         count,
-        percentage: (count / totalRequests) * 100
+        percentage: requestLogs.length > 0 ? (count / requestLogs.length) * 100 : 0
       }));
 
     // Module activity
@@ -383,12 +238,17 @@ export function AnalyticsDashboard() {
       if (!acc[module]) {
         acc[module] = { requests: 0, errors: 0, times: [] };
       }
-      acc[module].requests++;
-      if (filteredLogs.error_logs.includes(log as any)) {
-        acc[module].errors++;
+      
+      if (log.type === 'response' || log.type === 'endpoint_execution') {
+        acc[module].requests++;
+        const duration = log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
+        if (duration) {
+          acc[module].times.push(duration);
+        }
       }
-      if (log.duration_ms) {
-        acc[module].times.push(log.duration_ms);
+      
+      if (log.level === 'ERROR' || (log.status_code && log.status_code >= 400)) {
+        acc[module].errors++;
       }
       return acc;
     }, {} as Record<string, { requests: number; errors: number; times: number[] }>);
@@ -399,7 +259,9 @@ export function AnalyticsDashboard() {
         requests: stats.requests,
         errors: stats.errors,
         avgTime: stats.times.length > 0 ? stats.times.reduce((a, b) => a + b, 0) / stats.times.length : 0
-      }));
+      }))
+      .sort((a, b) => b.requests - a.requests)
+      .slice(0, 5);
 
     // Performance metrics (percentiles)
     const performanceMetrics = topEndpoints.map(endpoint => {
@@ -412,23 +274,38 @@ export function AnalyticsDashboard() {
       };
     });
 
-    // Mock geographic data
-    const geographicData = [
-      { region: 'US-East', requests: Math.floor(totalRequests * 0.4), latency: avgResponseTime * 0.8 },
-      { region: 'US-West', requests: Math.floor(totalRequests * 0.3), latency: avgResponseTime * 1.1 },
-      { region: 'Europe', requests: Math.floor(totalRequests * 0.2), latency: avgResponseTime * 1.3 },
-      { region: 'Asia', requests: Math.floor(totalRequests * 0.1), latency: avgResponseTime * 1.8 }
-    ];
+    // Geographic data based on remote_addr patterns
+    const ipCounts = requestLogs.reduce((acc, log) => {
+      if (log.remote_addr) {
+        const region = log.remote_addr.startsWith('127.0.0.1') ? 'Local' : 
+                      log.remote_addr.startsWith('192.168') ? 'LAN' :
+                      log.remote_addr.startsWith('10.') ? 'Private' : 'External';
+        acc[region] = (acc[region] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    const geographicData = Object.entries(ipCounts)
+      .map(([region, requests]) => ({
+        region,
+        requests,
+        latency: avgResponseTime * (region === 'Local' ? 0.5 : region === 'LAN' ? 1.0 : 1.5)
+      }))
+      .sort((a, b) => b.requests - a.requests);
 
     // Hourly pattern
     const hourlyPattern = Array.from({ length: 24 }, (_, hour) => {
-      const hourLogs = allLogs.filter(log => 
+      const hourRequests = responseLogs.filter(log => 
         parseInt(format(parseISO(log.timestamp), 'H')) === hour
+      );
+      const hourErrors = allLogs.filter(log => 
+        parseInt(format(parseISO(log.timestamp), 'H')) === hour &&
+        (log.level === 'ERROR' || (log.status_code && log.status_code >= 400))
       );
       return {
         hour,
-        requests: hourLogs.length,
-        errors: hourLogs.filter(log => filteredLogs.error_logs.includes(log as any)).length
+        requests: hourRequests.length,
+        errors: hourErrors.length
       };
     });
 
@@ -464,13 +341,48 @@ export function AnalyticsDashboard() {
     return null;
   };
 
-  if (!analytics) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-500" />
             <p className="text-gray-600 dark:text-gray-400">Loading analytics data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analytics && (!logs || (logs.api_logs.length === 0 && logs.error_logs.length === 0))) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-amber-500" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              No Analytics Data Available
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              The Local LLM API at 127.0.0.1:5000 is not responding or has no log data.
+            </p>
+            <Button onClick={fetchLogs} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-500" />
+            <p className="text-gray-600 dark:text-gray-400">Processing analytics data...</p>
           </div>
         </div>
       </div>
