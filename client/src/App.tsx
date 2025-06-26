@@ -21,12 +21,12 @@ function AppContent() {
   const { notifications, removeNotification } = useNotifications();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background tech-grid transition-all duration-300">
+    <div className="min-h-screen bg-background">
       <TopNavigation />
-      <div className="flex h-[calc(100vh-3.5rem)]">
+      <div className="flex h-[calc(100vh-3rem)]">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto relative">
-          <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 relative z-10 max-w-7xl">
+        <main className="flex-1 overflow-y-auto bg-muted/30">
+          <div className="container mx-auto px-4 py-4 max-w-7xl">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/playground" component={Playground} />
