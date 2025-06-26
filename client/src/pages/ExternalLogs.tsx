@@ -13,6 +13,7 @@ interface LogEntry {
   level: string;
   message: string;
   module: string;
+  type?: string;
   request_id?: string;
   method?: string;
   url?: string;
@@ -22,6 +23,7 @@ interface LogEntry {
   status_code?: number;
   response_time?: number;
   duration_ms?: number;
+  duration_s?: number;
   content_type?: string;
   content_length?: number;
   response_body?: any;
@@ -29,6 +31,10 @@ interface LogEntry {
   error_type?: string;
   error_details?: string;
   stack_trace?: string;
+  args?: any;
+  status?: string;
+  event_type?: string;
+  model_count?: number;
 }
 
 interface LogsResponse {
@@ -341,12 +347,29 @@ export default function ExternalLogs() {
     const apiLogs = logsData.api_logs;
     const errorLogs = logsData.error_logs;
     
+    // Count different log types based on message content and available fields
+    const requests = apiLogs.filter(log => 
+      log.message.toLowerCase().includes('incoming request') || 
+      log.message.toLowerCase().includes('incoming') && log.method
+    ).length;
+    
+    const responses = apiLogs.filter(log => 
+      log.message.toLowerCase().includes('outgoing response') ||
+      log.message.toLowerCase().includes('completed successfully') ||
+      (log.duration_ms || log.duration_s) && log.status_code
+    ).length;
+    
+    // Count actual errors (status codes >= 400 or ERROR level)
+    const actualErrors = apiLogs.filter(log => 
+      log.level === 'ERROR' || (log.status_code && log.status_code >= 400)
+    ).length + errorLogs.length;
+    
     return {
       total: apiLogs.length + errorLogs.length,
       api: apiLogs.length,
-      errors: errorLogs.length,
-      requests: apiLogs.filter(log => log.message.toLowerCase().includes('incoming')).length,
-      responses: apiLogs.filter(log => log.message.toLowerCase().includes('completed')).length,
+      errors: actualErrors,
+      requests: requests,
+      responses: responses,
     };
   };
 

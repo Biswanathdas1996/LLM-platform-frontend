@@ -146,24 +146,7 @@ export function AnalyticsDashboard() {
       ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length 
       : 0;
 
-    // Debug output for data verification
-    console.log('Analytics Data Verification:', {
-      totalApiLogs: filteredLogs.api_logs.length,
-      responseLogs: responseLogs.length,
-      endpointExecutionLogs: endpointExecutionLogs.length,
-      requestLogs: requestLogs.length,
-      uniqueRequestIds: uniqueRequestIds.size,
-      completedRequests: completedRequests.length,
-      totalRequests,
-      errorCount,
-      errorRate: errorRate.toFixed(2) + '%',
-      avgResponseTime: avgResponseTime.toFixed(2) + 'ms',
-      sampleLogs: {
-        firstRequest: requestLogs[0],
-        firstResponse: responseLogs[0],
-        firstEndpointExecution: endpointExecutionLogs[0]
-      }
-    });
+
 
     // Peak hour analysis using completed requests
     const hourCounts = completedRequests.reduce((acc, log) => {
