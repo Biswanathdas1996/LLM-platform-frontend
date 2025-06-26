@@ -128,7 +128,7 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
                     : 'bg-white dark:bg-slate-600 border border-slate-200 dark:border-slate-500'
                 }`}>
                   <p className="text-sm text-slate-900 dark:text-white whitespace-pre-wrap">
-                    {message.content}
+                    {typeof message.content === 'string' ? message.content : JSON.stringify(message.content)}
                   </p>
                 </div>
                 <div className="flex items-center justify-between mt-1">

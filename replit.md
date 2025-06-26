@@ -108,6 +108,8 @@ The application defines three main tables:
 
 Changelog:
 - June 26, 2025. Initial setup
+- June 26, 2025. Fixed DOM nesting warning in Sidebar navigation (changed nested `<a>` tags to `<div>`)
+- June 26, 2025. Fixed React error in ChatInterface by adding type safety for message content rendering
 
 ## User Preferences
 
