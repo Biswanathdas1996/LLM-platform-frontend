@@ -70,7 +70,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 border-r bg-card/95 backdrop-blur-sm h-screen hidden lg:block relative border-border/50" style={{ height: '100vh', overflow: 'hidden' }}>
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5" />
-      <nav className="px-4 py-2 relative z-10 flex flex-col" style={{ height: 'calc(100vh - 0px)', overflow: 'hidden' }}>
+      <nav className="px-4 pt-2 pb-0 relative z-10 flex flex-col" style={{ height: '100vh', overflow: 'hidden' }}>
         {/* Primary Navigation */}
         <div className="flex-1 min-h-0" style={{ overflow: 'hidden' }}>
           <div className="space-y-1">
@@ -104,7 +104,7 @@ export function Sidebar() {
                   
                   {/* Quick Actions - positioned after External Logs */}
                   {item.name === 'External Logs' && (
-                    <div className="space-y-2 mt-3 mb-2 border-t border-primary/20 bg-gradient-to-b from-primary/5 to-transparent rounded-lg p-2" style={{ overflow: 'hidden' }}>
+                    <div className="space-y-2 mt-3 mb-0 border-t border-primary/20 bg-gradient-to-b from-primary/5 to-transparent rounded-lg p-2 pb-4" style={{ overflow: 'hidden' }}>
                       <h3 className="text-xs font-semibold text-primary px-2 mb-2 uppercase tracking-wider">Quick Actions</h3>
                       <Button
                         variant="outline"
