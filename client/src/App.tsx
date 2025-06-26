@@ -25,9 +25,9 @@ function AppContent() {
       <TopNavigation />
       <div className="flex h-[calc(100vh-3rem)]">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-professional bg-pattern-dots relative p-4">
+        <main className="flex-1 overflow-y-auto bg-professional bg-pattern-dots relative">
           <div className="absolute inset-0 bg-gradient-to-br from-background/80 via-transparent to-muted/10" />
-          <div className="container mx-auto max-w-7xl relative z-10 bg-gradient-to-br from-slate-50/90 via-white/70 to-blue-50/50 dark:from-slate-900/90 dark:via-slate-800/70 dark:to-slate-900/50 rounded-2xl backdrop-blur-md shadow-lg border border-white/30 dark:border-slate-700/30 p-6">
+          <div className="container mx-auto px-4 py-4 max-w-7xl relative z-10">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/playground" component={Playground} />
