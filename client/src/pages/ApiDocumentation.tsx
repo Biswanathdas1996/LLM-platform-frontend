@@ -609,17 +609,21 @@ try {
 
                   <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg">
                     <p className="text-sm font-medium mb-1">Generated Text:</p>
-                    <p className="text-sm">{testResponse.response}</p>
+                    <p className="text-sm">
+                      {typeof testResponse.response === 'string' 
+                        ? testResponse.response 
+                        : JSON.stringify(testResponse.response)}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="font-medium">Model:</span>
-                      <p className="truncate">{testResponse.model_used}</p>
+                      <p className="truncate">{String(testResponse.model_used || 'N/A')}</p>
                     </div>
                     <div>
                       <span className="font-medium">Tokens:</span>
-                      <p>{testResponse.token_count}</p>
+                      <p>{String(testResponse.token_count || 0)}</p>
                     </div>
                   </div>
 
