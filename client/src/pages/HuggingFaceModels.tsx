@@ -3,7 +3,7 @@ import { Plus, Download, Trash2, RefreshCw, Settings, Play, Cpu, Clock, Trending
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -252,6 +252,9 @@ export default function HuggingFaceModels() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add HuggingFace Model</DialogTitle>
+              <DialogDescription>
+                Add a new HuggingFace model to your registry for text generation and other tasks.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -473,6 +476,9 @@ export default function HuggingFaceModels() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Model: {editingModel?.name}</DialogTitle>
+            <DialogDescription>
+              Update the model name, description, and default parameters.
+            </DialogDescription>
           </DialogHeader>
           {editingModel && (
             <div className="space-y-4">
