@@ -35,15 +35,18 @@ export default function DeepSeekModels() {
     }
   };
 
-  const formatFileSize = (sizeStr: string) => {
+  const formatFileSize = (sizeStr: string | number) => {
+    // Convert to string if it's a number
+    const size = String(sizeStr);
+    
     // If it's already formatted, return as is
-    if (sizeStr.includes('MB') || sizeStr.includes('GB') || sizeStr.includes('KB')) {
-      return sizeStr;
+    if (size.includes('MB') || size.includes('GB') || size.includes('KB')) {
+      return size;
     }
     
     // Otherwise try to parse as bytes and format
-    const bytes = parseInt(sizeStr);
-    if (isNaN(bytes)) return sizeStr;
+    const bytes = parseInt(size);
+    if (isNaN(bytes)) return size;
     
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
