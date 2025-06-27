@@ -33,12 +33,6 @@ const navigation = [
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
-const huggingFaceNavigation = [
-  { name: 'HF Models', href: '/huggingface/models', icon: Brain },
-  { name: 'HF Generation', href: '/huggingface/generation', icon: Zap },
-  { name: 'HF Statistics', href: '/huggingface/stats', icon: Activity },
-];
-
 const deepSeekNavigation = [
   { name: 'DS Models', href: '/deepseek/models', icon: Cpu },
   { name: 'DS Generation', href: '/deepseek/generation', icon: Sparkles },
@@ -148,30 +142,6 @@ export function Sidebar() {
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
-
-          {/* HuggingFace Navigation Section */}
-          <div className="space-y-1 mt-6 pt-4 border-t border-primary/20">
-            <h3 className="text-xs font-semibold text-primary px-3 mb-2 uppercase tracking-wider">HuggingFace</h3>
-            {huggingFaceNavigation.map((item) => {
-              const isActive = location === item.href;
-              const Icon = item.icon;
-              
-              return (
-                <Link key={item.name} href={item.href}>
-                  <div className={`
-                    flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-primary to-accent text-white shadow-lg border border-primary/20' 
-                      : 'text-muted-foreground hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:text-foreground hover:shadow-sm'
-                    }
-                  `}>
-                    <Icon className="h-4 w-4 mr-3" />
-                    <span className="flex-1">{item.name}</span>
-                  </div>
-                </Link>
               );
             })}
           </div>

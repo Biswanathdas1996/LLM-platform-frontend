@@ -16,9 +16,6 @@ import CacheStatus from "@/pages/CacheStatus";
 import ApiDocumentation from "@/pages/ApiDocumentation";
 import ExternalLogs from "@/pages/ExternalLogs";
 import Analytics from "@/pages/Analytics";
-import HuggingFaceModels from "@/pages/HuggingFaceModels";
-import HuggingFaceGeneration from "@/pages/HuggingFaceGeneration";
-import HuggingFaceStats from "@/pages/HuggingFaceStats";
 import DeepSeekModels from "@/pages/DeepSeekModels";
 import DeepSeekGeneration from "@/pages/DeepSeekGeneration";
 import NotFound from "@/pages/not-found";
@@ -43,9 +40,6 @@ function AppContent() {
               <Route path="/api-docs" component={ApiDocumentation} />
               <Route path="/external-logs" component={ExternalLogs} />
               <Route path="/analytics" component={Analytics} />
-              <Route path="/huggingface/models" component={HuggingFaceModels} />
-              <Route path="/huggingface/generation" component={HuggingFaceGeneration} />
-              <Route path="/huggingface/stats" component={HuggingFaceStats} />
               <Route path="/deepseek/models" component={DeepSeekModels} />
               <Route path="/deepseek/generation" component={DeepSeekGeneration} />
               <Route component={NotFound} />
