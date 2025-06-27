@@ -19,6 +19,8 @@ import Analytics from "@/pages/Analytics";
 import HuggingFaceModels from "@/pages/HuggingFaceModels";
 import HuggingFaceGeneration from "@/pages/HuggingFaceGeneration";
 import HuggingFaceStats from "@/pages/HuggingFaceStats";
+import DeepSeekModels from "@/pages/DeepSeekModels";
+import DeepSeekGeneration from "@/pages/DeepSeekGeneration";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -44,6 +46,8 @@ function AppContent() {
               <Route path="/huggingface/models" component={HuggingFaceModels} />
               <Route path="/huggingface/generation" component={HuggingFaceGeneration} />
               <Route path="/huggingface/stats" component={HuggingFaceStats} />
+              <Route path="/deepseek/models" component={DeepSeekModels} />
+              <Route path="/deepseek/generation" component={DeepSeekGeneration} />
               <Route component={NotFound} />
             </Switch>
           </div>
