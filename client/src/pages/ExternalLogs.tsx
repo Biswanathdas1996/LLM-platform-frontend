@@ -1,12 +1,27 @@
-import { useState, useEffect } from 'react';
-import { RefreshCw, Download, AlertCircle, Server, Bug, Search, Filter, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ApiError } from '@/components/ui/api-error';
+import { useState, useEffect } from "react";
+import {
+  RefreshCw,
+  Download,
+  AlertCircle,
+  Server,
+  Bug,
+  Search,
+  Filter,
+  Trash2,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApiError } from "@/components/ui/api-error";
 
 interface LogEntry {
   timestamp: string;
@@ -47,22 +62,22 @@ export default function ExternalLogs() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [moduleFilter, setModuleFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [isClearing, setIsClearing] = useState(false);
 
-  const [activeTab, setActiveTab] = useState('api');
+  const [activeTab, setActiveTab] = useState("api");
 
   const fetchLogs = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/v1/logs', {
-        method: 'GET',
+      const response = await fetch("http://127.0.0.1:5001/api/v1/logs", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -74,7 +89,7 @@ export default function ExternalLogs() {
       setLogsData(data);
       setLastRefresh(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch logs');
+      setError(err instanceof Error ? err.message : "Failed to fetch logs");
     } finally {
       setIsLoading(false);
     }
@@ -83,23 +98,23 @@ export default function ExternalLogs() {
   const clearLogs = async () => {
     setIsClearing(true);
     setError(null);
-    
+
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/v1/clear-logs', {
-        method: 'GET',
+      const response = await fetch("http://127.0.0.1:5001/api/v1/clear-logs", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       // Refresh logs after clearing
       await fetchLogs();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to clear logs');
+      setError(err instanceof Error ? err.message : "Failed to clear logs");
     } finally {
       setIsClearing(false);
     }
@@ -110,90 +125,108 @@ export default function ExternalLogs() {
   }, []);
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
+    return new Date(timestamp).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
     });
   };
 
   const getLevelColor = (level: string) => {
     switch (level.toUpperCase()) {
-      case 'ERROR': return 'bg-red-500 text-white';
-      case 'CRITICAL': return 'bg-red-700 text-white';
-      case 'WARNING': return 'bg-yellow-500 text-white';
-      case 'WARN': return 'bg-yellow-500 text-white';
-      case 'INFO': return 'bg-blue-500 text-white';
-      case 'DEBUG': return 'bg-gray-500 text-white';
-      default: return 'bg-gray-500 text-white';
+      case "ERROR":
+        return "bg-red-500 text-white";
+      case "CRITICAL":
+        return "bg-red-700 text-white";
+      case "WARNING":
+        return "bg-yellow-500 text-white";
+      case "WARN":
+        return "bg-yellow-500 text-white";
+      case "INFO":
+        return "bg-blue-500 text-white";
+      case "DEBUG":
+        return "bg-gray-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
     }
   };
 
   const getStatusColor = (statusCode: number) => {
-    if (statusCode >= 200 && statusCode < 300) return 'text-green-600';
-    if (statusCode >= 300 && statusCode < 400) return 'text-yellow-600';
-    if (statusCode >= 400 && statusCode < 500) return 'text-orange-600';
-    if (statusCode >= 500) return 'text-red-600';
-    return 'text-gray-600';
+    if (statusCode >= 200 && statusCode < 300) return "text-green-600";
+    if (statusCode >= 300 && statusCode < 400) return "text-yellow-600";
+    if (statusCode >= 400 && statusCode < 500) return "text-orange-600";
+    if (statusCode >= 500) return "text-red-600";
+    return "text-gray-600";
   };
 
   const filterLogs = (logs: LogEntry[]) => {
-    return logs.filter(log => {
-      const matchesSearch = !searchTerm || 
-        log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (log.endpoint && log.endpoint.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (log.request_id && log.request_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (log.url && log.url.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (log.method && log.method.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesLevel = levelFilter === 'all' || log.level.toUpperCase() === levelFilter.toUpperCase();
-      const matchesModule = moduleFilter === 'all' || log.module === moduleFilter;
-      
-      return matchesSearch && matchesLevel && matchesModule;
-    }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return logs
+      .filter((log) => {
+        const matchesSearch =
+          !searchTerm ||
+          log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          log.module.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (log.endpoint &&
+            log.endpoint.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (log.request_id &&
+            log.request_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (log.url &&
+            log.url.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (log.method &&
+            log.method.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesLevel =
+          levelFilter === "all" ||
+          log.level.toUpperCase() === levelFilter.toUpperCase();
+        const matchesModule =
+          moduleFilter === "all" || log.module === moduleFilter;
+
+        return matchesSearch && matchesLevel && matchesModule;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
   };
 
   const getUniqueModules = () => {
     if (!logsData) return [];
     const allLogs = [...logsData.api_logs, ...logsData.error_logs];
-    return Array.from(new Set(allLogs.map(log => log.module))).sort();
+    return Array.from(new Set(allLogs.map((log) => log.module))).sort();
   };
 
-
-
-  const exportLogs = (logType: 'api' | 'error' | 'all') => {
+  const exportLogs = (logType: "api" | "error" | "all") => {
     if (!logsData) return;
 
     let dataToExport;
     let filename;
 
     switch (logType) {
-      case 'api':
+      case "api":
         dataToExport = filterLogs(logsData.api_logs);
-        filename = `api_logs_${new Date().toISOString().split('T')[0]}.json`;
+        filename = `api_logs_${new Date().toISOString().split("T")[0]}.json`;
         break;
-      case 'error':
+      case "error":
         dataToExport = filterLogs(logsData.error_logs);
-        filename = `error_logs_${new Date().toISOString().split('T')[0]}.json`;
+        filename = `error_logs_${new Date().toISOString().split("T")[0]}.json`;
         break;
       default:
         dataToExport = {
           api_logs: filterLogs(logsData.api_logs),
-          error_logs: filterLogs(logsData.error_logs)
+          error_logs: filterLogs(logsData.error_logs),
         };
-        filename = `all_logs_${new Date().toISOString().split('T')[0]}.json`;
+        filename = `all_logs_${new Date().toISOString().split("T")[0]}.json`;
     }
 
     const dataStr = JSON.stringify(dataToExport, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
@@ -203,7 +236,10 @@ export default function ExternalLogs() {
   };
 
   const renderLogEntry = (log: LogEntry, index: number, isError = false) => (
-    <div key={index} className="mb-3 p-3 bg-gray-900 rounded-lg border border-gray-700">
+    <div
+      key={index}
+      className="mb-3 p-3 bg-gray-900 rounded-lg border border-gray-700"
+    >
       <div className="flex items-start gap-3 mb-2">
         <span className="text-gray-400 text-xs shrink-0 w-32 font-mono">
           {formatTimestamp(log.timestamp)}
@@ -211,7 +247,10 @@ export default function ExternalLogs() {
         <Badge className={`text-xs shrink-0 ${getLevelColor(log.level)}`}>
           {log.level}
         </Badge>
-        <Badge variant="outline" className="text-xs shrink-0 bg-blue-900/30 border-blue-400 text-blue-200 font-medium">
+        <Badge
+          variant="outline"
+          className="text-xs shrink-0 bg-blue-900/30 border-blue-400 text-blue-200 font-medium"
+        >
           {log.module}
         </Badge>
         {log.request_id && (
@@ -220,9 +259,9 @@ export default function ExternalLogs() {
           </span>
         )}
       </div>
-      
+
       <div className="text-sm text-green-400 mb-2">{log.message}</div>
-      
+
       {/* API Log Details */}
       {!isError && (log.method || log.endpoint || log.status_code) && (
         <div className="ml-3 text-xs text-gray-400 space-y-1">
@@ -233,29 +272,37 @@ export default function ExternalLogs() {
             </div>
           )}
           {log.endpoint && (
-            <div>Endpoint: <span className="text-yellow-400">{log.endpoint}</span></div>
+            <div>
+              Endpoint: <span className="text-yellow-400">{log.endpoint}</span>
+            </div>
           )}
-          
+
           {/* Primary Request Details */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-1">
             {log.status_code && (
               <div className="bg-gray-800 px-2 py-1 rounded text-xs">
                 <span className="text-gray-400">Status:</span>
-                <span className={`ml-1 font-semibold ${getStatusColor(log.status_code)}`}>
+                <span
+                  className={`ml-1 font-semibold ${getStatusColor(
+                    log.status_code
+                  )}`}
+                >
                   {log.status_code}
                 </span>
               </div>
             )}
-            
+
             {(log.duration_ms || log.response_time) && (
               <div className="bg-gray-800 px-2 py-1 rounded text-xs">
                 <span className="text-gray-400">Duration:</span>
                 <span className="ml-1 font-semibold text-blue-400">
-                  {log.duration_ms ? `${log.duration_ms.toFixed(2)}ms` : `${log.response_time?.toFixed(2)}ms`}
+                  {log.duration_ms
+                    ? `${log.duration_ms.toFixed(2)}ms`
+                    : `${log.response_time?.toFixed(2)}ms`}
                 </span>
               </div>
             )}
-            
+
             {log.content_type && (
               <div className="bg-gray-800 px-2 py-1 rounded text-xs">
                 <span className="text-gray-400">Content-Type:</span>
@@ -264,7 +311,7 @@ export default function ExternalLogs() {
                 </span>
               </div>
             )}
-            
+
             {log.content_length && (
               <div className="bg-gray-800 px-2 py-1 rounded text-xs">
                 <span className="text-gray-400">Size:</span>
@@ -273,7 +320,7 @@ export default function ExternalLogs() {
                 </span>
               </div>
             )}
-            
+
             {log.remote_addr && (
               <div className="bg-gray-800 px-2 py-1 rounded text-xs">
                 <span className="text-gray-400">From:</span>
@@ -283,29 +330,33 @@ export default function ExternalLogs() {
               </div>
             )}
           </div>
-          
+
           {/* Response Body - Always Visible When Available */}
           {log.response_body && (
             <div className="mt-2">
               <div className="bg-gray-800 p-3 rounded">
-                <div className="text-green-400 font-semibold text-xs mb-2">Response Body:</div>
+                <div className="text-green-400 font-semibold text-xs mb-2">
+                  Response Body:
+                </div>
                 <pre className="bg-green-900/20 p-2 rounded text-green-200 overflow-x-auto text-xs max-h-32 overflow-y-auto">
-                  {typeof log.response_body === 'string' 
-                    ? log.response_body 
+                  {typeof log.response_body === "string"
+                    ? log.response_body
                     : JSON.stringify(log.response_body, null, 2)}
                 </pre>
               </div>
             </div>
           )}
-          
+
           {/* Request Body - Collapsible */}
           {log.request_body && (
             <div className="mt-2">
               <details className="text-cyan-300">
-                <summary className="cursor-pointer font-semibold text-xs bg-gray-800 p-2 rounded">Request Body</summary>
+                <summary className="cursor-pointer font-semibold text-xs bg-gray-800 p-2 rounded">
+                  Request Body
+                </summary>
                 <pre className="bg-cyan-900/20 p-2 rounded text-cyan-200 mt-1 overflow-x-auto text-xs max-h-32 overflow-y-auto">
-                  {typeof log.request_body === 'string' 
-                    ? log.request_body 
+                  {typeof log.request_body === "string"
+                    ? log.request_body
                     : JSON.stringify(log.request_body, null, 2)}
                 </pre>
               </details>
@@ -313,12 +364,14 @@ export default function ExternalLogs() {
           )}
         </div>
       )}
-      
+
       {/* Error Log Details */}
       {isError && (
         <div className="ml-3 text-xs text-gray-400 space-y-2">
           {log.error_type && (
-            <div>Error Type: <span className="text-red-400">{log.error_type}</span></div>
+            <div>
+              Error Type: <span className="text-red-400">{log.error_type}</span>
+            </div>
           )}
           {log.error_details && (
             <div className="text-red-300">
@@ -330,7 +383,9 @@ export default function ExternalLogs() {
           )}
           {log.stack_trace && (
             <details className="text-red-300">
-              <summary className="cursor-pointer font-semibold">Stack Trace</summary>
+              <summary className="cursor-pointer font-semibold">
+                Stack Trace
+              </summary>
               <pre className="bg-red-900/20 p-2 rounded text-red-200 mt-1 overflow-x-auto text-xs">
                 {log.stack_trace}
               </pre>
@@ -342,28 +397,33 @@ export default function ExternalLogs() {
   );
 
   const getStats = () => {
-    if (!logsData) return { total: 0, api: 0, errors: 0, requests: 0, responses: 0 };
-    
+    if (!logsData)
+      return { total: 0, api: 0, errors: 0, requests: 0, responses: 0 };
+
     const apiLogs = logsData.api_logs;
     const errorLogs = logsData.error_logs;
-    
+
     // Count different log types based on message content and available fields
-    const requests = apiLogs.filter(log => 
-      log.message.toLowerCase().includes('incoming request') || 
-      log.message.toLowerCase().includes('incoming') && log.method
+    const requests = apiLogs.filter(
+      (log) =>
+        log.message.toLowerCase().includes("incoming request") ||
+        (log.message.toLowerCase().includes("incoming") && log.method)
     ).length;
-    
-    const responses = apiLogs.filter(log => 
-      log.message.toLowerCase().includes('outgoing response') ||
-      log.message.toLowerCase().includes('completed successfully') ||
-      (log.duration_ms || log.duration_s) && log.status_code
+
+    const responses = apiLogs.filter(
+      (log) =>
+        log.message.toLowerCase().includes("outgoing response") ||
+        log.message.toLowerCase().includes("completed successfully") ||
+        ((log.duration_ms || log.duration_s) && log.status_code)
     ).length;
-    
+
     // Count actual errors (status codes >= 400 or ERROR level)
-    const actualErrors = apiLogs.filter(log => 
-      log.level === 'ERROR' || (log.status_code && log.status_code >= 400)
-    ).length + errorLogs.length;
-    
+    const actualErrors =
+      apiLogs.filter(
+        (log) =>
+          log.level === "ERROR" || (log.status_code && log.status_code >= 400)
+      ).length + errorLogs.length;
+
     return {
       total: apiLogs.length + errorLogs.length,
       api: apiLogs.length,
@@ -398,25 +458,33 @@ export default function ExternalLogs() {
           <div className="flex items-center justify-between mb-4">
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-indigo-500/20 border border-indigo-500/30">
               <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-glow" />
-              <span className="text-sm mono text-indigo-400 font-medium">LOG_MONITOR</span>
+              <span className="text-sm mono text-indigo-400 font-medium">
+                LOG_MONITOR
+              </span>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow" />
-                <span className="text-xs mono text-muted-foreground">STREAM_ACTIVE</span>
+                <span className="text-xs mono text-muted-foreground">
+                  STREAM_ACTIVE
+                </span>
               </div>
               <div className="w-px h-4 bg-border" />
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 rounded-full bg-amber-400 shadow-glow" />
-                <span className="text-xs mono text-muted-foreground">ANALYSIS_ON</span>
+                <span className="text-xs mono text-muted-foreground">
+                  ANALYSIS_ON
+                </span>
               </div>
               <div className="w-px h-4 bg-border" />
-              <Button 
-                onClick={fetchLogs} 
+              <Button
+                onClick={fetchLogs}
                 disabled={isLoading}
                 className="tech-button h-9 px-4"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                />
                 <span className="mono">REFRESH</span>
               </Button>
             </div>
@@ -426,18 +494,20 @@ export default function ExternalLogs() {
               LOG.ANALYTICS
             </h1>
             <p className="text-lg text-muted-foreground mono max-w-3xl tracking-wide">
-              Real-time API Monitoring • Error Tracking • Performance Analysis • Request Tracing
+              Real-time API Monitoring • Error Tracking • Performance Analysis •
+              Request Tracing
             </p>
             {lastRefresh && (
               <div className="flex items-center space-x-2 mt-4">
                 <div className="w-2 h-2 rounded-full bg-blue-400 shadow-glow" />
                 <span className="text-xs mono text-muted-foreground">
-                  LAST_SYNC: {lastRefresh.toLocaleString('en-IN', {
-                    timeZone: 'Asia/Kolkata',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
+                  LAST_SYNC:{" "}
+                  {lastRefresh.toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
                   })}
                 </span>
               </div>
@@ -479,7 +549,9 @@ export default function ExternalLogs() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Errors</p>
-                <p className="text-2xl font-bold text-red-600">{stats.errors}</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.errors}
+                </p>
               </div>
               <Bug className="h-8 w-8 text-red-500" />
             </div>
@@ -491,7 +563,9 @@ export default function ExternalLogs() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Requests</p>
-                <p className="text-2xl font-bold text-green-600">{stats.requests}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.requests}
+                </p>
               </div>
               <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
                 <span className="text-green-600 text-xs font-bold">REQ</span>
@@ -505,7 +579,9 @@ export default function ExternalLogs() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Responses</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.responses}</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {stats.responses}
+                </p>
               </div>
               <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
                 <span className="text-purple-600 text-xs font-bold">RES</span>
@@ -555,32 +631,40 @@ export default function ExternalLogs() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Modules</SelectItem>
-                {getUniqueModules().map(module => (
-                  <SelectItem key={module} value={module}>{module}</SelectItem>
+                {getUniqueModules().map((module) => (
+                  <SelectItem key={module} value={module}>
+                    {module}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
-            
           </div>
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={fetchLogs} disabled={isLoading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+              />
               Refresh Logs
             </Button>
-            <Button variant="outline" onClick={clearLogs} disabled={isClearing || isLoading}>
-              <Trash2 className={`h-4 w-4 mr-2 ${isClearing ? 'animate-spin' : ''}`} />
+            <Button
+              variant="outline"
+              onClick={clearLogs}
+              disabled={isClearing || isLoading}
+            >
+              <Trash2
+                className={`h-4 w-4 mr-2 ${isClearing ? "animate-spin" : ""}`}
+              />
               Clear Logs
             </Button>
-            <Button variant="outline" onClick={() => exportLogs('all')}>
+            <Button variant="outline" onClick={() => exportLogs("all")}>
               <Download className="h-4 w-4 mr-2" />
               Export All
             </Button>
-            <Button variant="outline" onClick={() => exportLogs('api')}>
+            <Button variant="outline" onClick={() => exportLogs("api")}>
               Export API Logs
             </Button>
-            <Button variant="outline" onClick={() => exportLogs('error')}>
+            <Button variant="outline" onClick={() => exportLogs("error")}>
               Export Error Logs
             </Button>
           </div>
@@ -617,7 +701,9 @@ export default function ExternalLogs() {
                       No API logs available
                     </div>
                   ) : (
-                    filteredApiLogs.map((log, index) => renderLogEntry(log, index))
+                    filteredApiLogs.map((log, index) =>
+                      renderLogEntry(log, index)
+                    )
                   )}
                 </div>
               )}
@@ -642,7 +728,9 @@ export default function ExternalLogs() {
                       No error logs available
                     </div>
                   ) : (
-                    filteredErrorLogs.map((log, index) => renderLogEntry(log, index, true))
+                    filteredErrorLogs.map((log, index) =>
+                      renderLogEntry(log, index, true)
+                    )
                   )}
                 </div>
               )}

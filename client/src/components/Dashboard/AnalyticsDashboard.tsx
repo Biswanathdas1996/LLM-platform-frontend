@@ -1,22 +1,67 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { 
-  AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ScatterChart, Scatter, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} from 'recharts';
-import { 
-  Activity, TrendingUp, Clock, AlertTriangle, Server, Zap,
-  RefreshCw, Calendar, Filter, Download, BarChart3, PieChart as PieChartIcon,
-  LineChart as LineChartIcon, Gauge, Users, Database, Globe
-} from 'lucide-react';
-import { api, ExternalLogEntry } from '@/lib/api';
-import { format, subHours, subDays, parseISO, isWithinInterval } from 'date-fns';
+import { useState, useEffect, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+} from "recharts";
+import {
+  Activity,
+  TrendingUp,
+  Clock,
+  AlertTriangle,
+  Server,
+  Zap,
+  RefreshCw,
+  Calendar,
+  Filter,
+  Download,
+  BarChart3,
+  PieChart as PieChartIcon,
+  LineChart as LineChartIcon,
+  Gauge,
+  Users,
+  Database,
+  Globe,
+} from "lucide-react";
+import { api, ExternalLogEntry } from "@/lib/api";
+import {
+  format,
+  subHours,
+  subDays,
+  parseISO,
+  isWithinInterval,
+} from "date-fns";
 
 interface LogAnalytics {
   totalRequests: number;
@@ -25,10 +70,29 @@ interface LogAnalytics {
   peakHour: string;
   topEndpoints: Array<{ endpoint: string; count: number; avgTime: number }>;
   statusCodes: Array<{ code: number; count: number; percentage: number }>;
-  timeSeriesData: Array<{ timestamp: string; requests: number; errors: number; avgTime: number }>;
-  methodDistribution: Array<{ method: string; count: number; percentage: number }>;
-  moduleActivity: Array<{ module: string; requests: number; errors: number; avgTime: number }>;
-  performanceMetrics: Array<{ endpoint: string; p50: number; p95: number; p99: number }>;
+  timeSeriesData: Array<{
+    timestamp: string;
+    requests: number;
+    errors: number;
+    avgTime: number;
+  }>;
+  methodDistribution: Array<{
+    method: string;
+    count: number;
+    percentage: number;
+  }>;
+  moduleActivity: Array<{
+    module: string;
+    requests: number;
+    errors: number;
+    avgTime: number;
+  }>;
+  performanceMetrics: Array<{
+    endpoint: string;
+    p50: number;
+    p95: number;
+    p99: number;
+  }>;
   geographicData: Array<{ region: string; requests: number; latency: number }>;
   hourlyPattern: Array<{ hour: number; requests: number; errors: number }>;
 }
@@ -40,19 +104,31 @@ interface TimeFilter {
 }
 
 const timeFilters: TimeFilter[] = [
-  { label: 'Last Hour', value: '1h', hours: 1 },
-  { label: 'Last 6 Hours', value: '6h', hours: 6 },
-  { label: 'Last 24 Hours', value: '24h', hours: 24 },
-  { label: 'Last 7 Days', value: '7d', hours: 168 },
-  { label: 'Last 30 Days', value: '30d', hours: 720 }
+  { label: "Last Hour", value: "1h", hours: 1 },
+  { label: "Last 6 Hours", value: "6h", hours: 6 },
+  { label: "Last 24 Hours", value: "24h", hours: 24 },
+  { label: "Last 7 Days", value: "7d", hours: 168 },
+  { label: "Last 30 Days", value: "30d", hours: 720 },
 ];
 
-const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6', '#f97316'];
+const COLORS = [
+  "#8b5cf6",
+  "#06b6d4",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#ec4899",
+  "#14b8a6",
+  "#f97316",
+];
 
 export function AnalyticsDashboard() {
-  const [logs, setLogs] = useState<{ api_logs: ExternalLogEntry[]; error_logs: ExternalLogEntry[] } | null>(null);
+  const [logs, setLogs] = useState<{
+    api_logs: ExternalLogEntry[];
+    error_logs: ExternalLogEntry[];
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [timeFilter, setTimeFilter] = useState<string>('24h');
+  const [timeFilter, setTimeFilter] = useState<string>("24h");
   const [analytics, setAnalytics] = useState<LogAnalytics | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<number>(30000); // 30 seconds
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -61,22 +137,24 @@ export function AnalyticsDashboard() {
     setIsLoading(true);
     try {
       // Fetch real log data from the API endpoint
-      const response = await fetch('http://127.0.0.1:5000/api/v1/logs', {
-        method: 'GET',
+      const response = await fetch("http://127.0.0.1:5001/api/v1/logs", {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch logs: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch logs: ${response.status} ${response.statusText}`
+        );
       }
 
       const logData = await response.json();
       setLogs(logData);
       setLastRefresh(new Date());
     } catch (error) {
-      console.error('Failed to fetch logs:', error);
+      console.error("Failed to fetch logs:", error);
       setLogs({ api_logs: [], error_logs: [] });
     } finally {
       setIsLoading(false);
@@ -91,81 +169,94 @@ export function AnalyticsDashboard() {
 
   const filteredLogs = useMemo(() => {
     if (!logs) return { api_logs: [], error_logs: [] };
-    
-    const selectedFilter = timeFilters.find(f => f.value === timeFilter);
+
+    const selectedFilter = timeFilters.find((f) => f.value === timeFilter);
     if (!selectedFilter) return logs;
 
     const cutoffTime = subHours(new Date(), selectedFilter.hours);
-    
+
     return {
-      api_logs: logs.api_logs.filter(log => 
-        parseISO(log.timestamp) >= cutoffTime
+      api_logs: logs.api_logs.filter(
+        (log) => parseISO(log.timestamp) >= cutoffTime
       ),
-      error_logs: logs.error_logs.filter(log => 
-        parseISO(log.timestamp) >= cutoffTime
-      )
+      error_logs: logs.error_logs.filter(
+        (log) => parseISO(log.timestamp) >= cutoffTime
+      ),
     };
   }, [logs, timeFilter]);
 
   useEffect(() => {
-    if (!filteredLogs.api_logs.length && !filteredLogs.error_logs.length) return;
+    if (!filteredLogs.api_logs.length && !filteredLogs.error_logs.length)
+      return;
 
     const allLogs = [...filteredLogs.api_logs, ...filteredLogs.error_logs];
-    
+
     // Separate logs by type for accurate counting
-    const responseLogs = filteredLogs.api_logs.filter(log => log.type === 'response');
-    const endpointExecutionLogs = filteredLogs.api_logs.filter(log => log.type === 'endpoint_execution');
-    const requestLogs = filteredLogs.api_logs.filter(log => log.type === 'request');
-    
+    const responseLogs = filteredLogs.api_logs.filter(
+      (log) => log.type === "response"
+    );
+    const endpointExecutionLogs = filteredLogs.api_logs.filter(
+      (log) => log.type === "endpoint_execution"
+    );
+    const requestLogs = filteredLogs.api_logs.filter(
+      (log) => log.type === "request"
+    );
+
     // Use unique request_ids to count actual requests (each request should have corresponding response)
-    const uniqueRequestIds = new Set(requestLogs.map(log => log.request_id).filter(Boolean));
-    const completedRequests = responseLogs.filter(log => uniqueRequestIds.has(log.request_id!));
-    
+    const uniqueRequestIds = new Set(
+      requestLogs.map((log) => log.request_id).filter(Boolean)
+    );
+    const completedRequests = responseLogs.filter((log) =>
+      uniqueRequestIds.has(log.request_id!)
+    );
+
     const totalRequests = completedRequests.length;
-    const errorCount = completedRequests.filter(log => log.status_code && log.status_code >= 400).length;
-    const errorRate = totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0;
+    const errorCount = completedRequests.filter(
+      (log) => log.status_code && log.status_code >= 400
+    ).length;
+    const errorRate =
+      totalRequests > 0 ? (errorCount / totalRequests) * 100 : 0;
 
     // Calculate average response time from completed requests
     const responseTimes = completedRequests
-      .map(log => {
+      .map((log) => {
         if (log.duration_ms) return log.duration_ms;
         return null;
       })
-      .filter(time => time !== null) as number[];
-    
+      .filter((time) => time !== null) as number[];
+
     // Also include endpoint execution times
     const endpointTimes = endpointExecutionLogs
-      .map(log => {
+      .map((log) => {
         if (log.duration_s) return log.duration_s * 1000;
         return null;
       })
-      .filter(time => time !== null) as number[];
-    
+      .filter((time) => time !== null) as number[];
+
     const allResponseTimes = [...responseTimes, ...endpointTimes];
-    const avgResponseTime = allResponseTimes.length > 0 
-      ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length 
-      : 0;
-
-
+    const avgResponseTime =
+      allResponseTimes.length > 0
+        ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length
+        : 0;
 
     // Peak hour analysis using completed requests
     const hourCounts = completedRequests.reduce((acc, log) => {
-      const hour = format(parseISO(log.timestamp), 'HH:00');
+      const hour = format(parseISO(log.timestamp), "HH:00");
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    const peakHour = Object.entries(hourCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
+    const peakHour =
+      Object.entries(hourCounts).sort(([, a], [, b]) => b - a)[0]?.[0] || "N/A";
 
     // Top endpoints - use endpoint execution logs for accurate endpoint performance
     const endpointStats = endpointExecutionLogs.reduce((acc, log) => {
-      const endpoint = log.endpoint || 'unknown';
-      
+      const endpoint = log.endpoint || "unknown";
+
       if (!acc[endpoint]) {
         acc[endpoint] = { count: 0, totalTime: 0, times: [] };
       }
       acc[endpoint].count++;
-      
+
       const duration = log.duration_s ? log.duration_s * 1000 : null;
       if (duration) {
         acc[endpoint].totalTime += duration;
@@ -175,18 +266,21 @@ export function AnalyticsDashboard() {
     }, {} as Record<string, { count: number; totalTime: number; times: number[] }>);
 
     // Also include response times from completed requests
-    completedRequests.forEach(log => {
+    completedRequests.forEach((log) => {
       let endpoint = log.endpoint;
-      if (endpoint && endpoint.startsWith('api.')) {
-        endpoint = endpoint.replace('api.', ''); // Clean up endpoint name
+      if (endpoint && endpoint.startsWith("api.")) {
+        endpoint = endpoint.replace("api.", ""); // Clean up endpoint name
       }
-      endpoint = endpoint || 'unknown';
-      
+      endpoint = endpoint || "unknown";
+
       if (!endpointStats[endpoint]) {
         endpointStats[endpoint] = { count: 0, totalTime: 0, times: [] };
       }
       // Don't double count, just add timing data if available
-      if (log.duration_ms && !endpointStats[endpoint].times.includes(log.duration_ms)) {
+      if (
+        log.duration_ms &&
+        !endpointStats[endpoint].times.includes(log.duration_ms)
+      ) {
         endpointStats[endpoint].times.push(log.duration_ms);
         endpointStats[endpoint].totalTime += log.duration_ms;
       }
@@ -196,7 +290,8 @@ export function AnalyticsDashboard() {
       .map(([endpoint, stats]) => ({
         endpoint,
         count: stats.count,
-        avgTime: stats.times.length > 0 ? stats.totalTime / stats.times.length : 0
+        avgTime:
+          stats.times.length > 0 ? stats.totalTime / stats.times.length : 0,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -212,24 +307,27 @@ export function AnalyticsDashboard() {
       .map(([code, count]) => ({
         code: parseInt(code),
         count,
-        percentage: totalRequests > 0 ? (count / totalRequests) * 100 : 0
+        percentage: totalRequests > 0 ? (count / totalRequests) * 100 : 0,
       }))
       .sort((a, b) => b.count - a.count);
 
     // Time series data (hourly buckets) using completed requests for accuracy
-    const timeSeriesMap = new Map<string, { requests: number; errors: number; times: number[] }>();
-    completedRequests.forEach(log => {
-      const hourKey = format(parseISO(log.timestamp), 'yyyy-MM-dd HH:00');
+    const timeSeriesMap = new Map<
+      string,
+      { requests: number; errors: number; times: number[] }
+    >();
+    completedRequests.forEach((log) => {
+      const hourKey = format(parseISO(log.timestamp), "yyyy-MM-dd HH:00");
       if (!timeSeriesMap.has(hourKey)) {
         timeSeriesMap.set(hourKey, { requests: 0, errors: 0, times: [] });
       }
       const bucket = timeSeriesMap.get(hourKey)!;
       bucket.requests++;
-      
+
       if (log.duration_ms) {
         bucket.times.push(log.duration_ms);
       }
-      
+
       if (log.status_code && log.status_code >= 400) {
         bucket.errors++;
       }
@@ -240,40 +338,49 @@ export function AnalyticsDashboard() {
         timestamp,
         requests: data.requests,
         errors: data.errors,
-        avgTime: data.times.length > 0 ? data.times.reduce((a, b) => a + b, 0) / data.times.length : 0
+        avgTime:
+          data.times.length > 0
+            ? data.times.reduce((a, b) => a + b, 0) / data.times.length
+            : 0,
       }))
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
     // Method distribution from request logs
     const methodCounts = requestLogs.reduce((acc, log) => {
-      const method = log.method || 'GET';
+      const method = log.method || "GET";
       acc[method] = (acc[method] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const methodDistribution = Object.entries(methodCounts)
-      .map(([method, count]) => ({
+    const methodDistribution = Object.entries(methodCounts).map(
+      ([method, count]) => ({
         method,
         count,
-        percentage: requestLogs.length > 0 ? (count / requestLogs.length) * 100 : 0
-      }));
+        percentage:
+          requestLogs.length > 0 ? (count / requestLogs.length) * 100 : 0,
+      })
+    );
 
     // Module activity
     const moduleStats = allLogs.reduce((acc, log) => {
-      const module = log.module || 'unknown';
+      const module = log.module || "unknown";
       if (!acc[module]) {
         acc[module] = { requests: 0, errors: 0, times: [] };
       }
-      
-      if (log.type === 'response' || log.type === 'endpoint_execution') {
+
+      if (log.type === "response" || log.type === "endpoint_execution") {
         acc[module].requests++;
-        const duration = log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
+        const duration =
+          log.duration_ms || (log.duration_s ? log.duration_s * 1000 : null);
         if (duration) {
           acc[module].times.push(duration);
         }
       }
-      
-      if (log.level === 'ERROR' || (log.status_code && log.status_code >= 400)) {
+
+      if (
+        log.level === "ERROR" ||
+        (log.status_code && log.status_code >= 400)
+      ) {
         acc[module].errors++;
       }
       return acc;
@@ -284,28 +391,37 @@ export function AnalyticsDashboard() {
         module,
         requests: stats.requests,
         errors: stats.errors,
-        avgTime: stats.times.length > 0 ? stats.times.reduce((a, b) => a + b, 0) / stats.times.length : 0
+        avgTime:
+          stats.times.length > 0
+            ? stats.times.reduce((a, b) => a + b, 0) / stats.times.length
+            : 0,
       }))
       .sort((a, b) => b.requests - a.requests)
       .slice(0, 5);
 
     // Performance metrics (percentiles)
-    const performanceMetrics = topEndpoints.map(endpoint => {
-      const times = endpointStats[endpoint.endpoint].times.sort((a, b) => a - b);
+    const performanceMetrics = topEndpoints.map((endpoint) => {
+      const times = endpointStats[endpoint.endpoint].times.sort(
+        (a, b) => a - b
+      );
       return {
         endpoint: endpoint.endpoint,
         p50: times[Math.floor(times.length * 0.5)] || 0,
         p95: times[Math.floor(times.length * 0.95)] || 0,
-        p99: times[Math.floor(times.length * 0.99)] || 0
+        p99: times[Math.floor(times.length * 0.99)] || 0,
       };
     });
 
     // Geographic data based on remote_addr patterns
     const ipCounts = requestLogs.reduce((acc, log) => {
       if (log.remote_addr) {
-        const region = log.remote_addr.startsWith('127.0.0.1') ? 'Local' : 
-                      log.remote_addr.startsWith('192.168') ? 'LAN' :
-                      log.remote_addr.startsWith('10.') ? 'Private' : 'External';
+        const region = log.remote_addr.startsWith("127.0.0.1")
+          ? "Local"
+          : log.remote_addr.startsWith("192.168")
+          ? "LAN"
+          : log.remote_addr.startsWith("10.")
+          ? "Private"
+          : "External";
         acc[region] = (acc[region] || 0) + 1;
       }
       return acc;
@@ -315,23 +431,27 @@ export function AnalyticsDashboard() {
       .map(([region, requests]) => ({
         region,
         requests,
-        latency: avgResponseTime * (region === 'Local' ? 0.5 : region === 'LAN' ? 1.0 : 1.5)
+        latency:
+          avgResponseTime *
+          (region === "Local" ? 0.5 : region === "LAN" ? 1.0 : 1.5),
       }))
       .sort((a, b) => b.requests - a.requests);
 
     // Hourly pattern using completed requests for accuracy
     const hourlyPattern = Array.from({ length: 24 }, (_, hour) => {
-      const hourRequests = completedRequests.filter(log => 
-        parseInt(format(parseISO(log.timestamp), 'H')) === hour
+      const hourRequests = completedRequests.filter(
+        (log) => parseInt(format(parseISO(log.timestamp), "H")) === hour
       );
-      const hourErrors = completedRequests.filter(log => 
-        parseInt(format(parseISO(log.timestamp), 'H')) === hour &&
-        log.status_code && log.status_code >= 400
+      const hourErrors = completedRequests.filter(
+        (log) =>
+          parseInt(format(parseISO(log.timestamp), "H")) === hour &&
+          log.status_code &&
+          log.status_code >= 400
       );
       return {
         hour,
         requests: hourRequests.length,
-        errors: hourErrors.length
+        errors: hourErrors.length,
       };
     });
 
@@ -347,7 +467,7 @@ export function AnalyticsDashboard() {
       moduleActivity,
       performanceMetrics,
       geographicData,
-      hourlyPattern
+      hourlyPattern,
     });
   }, [filteredLogs]);
 
@@ -373,14 +493,19 @@ export function AnalyticsDashboard() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-500" />
-            <p className="text-gray-600 dark:text-gray-400">Loading analytics data...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading analytics data...
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!analytics && (!logs || (logs.api_logs.length === 0 && logs.error_logs.length === 0))) {
+  if (
+    !analytics &&
+    (!logs || (logs.api_logs.length === 0 && logs.error_logs.length === 0))
+  ) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-center h-64">
@@ -390,7 +515,8 @@ export function AnalyticsDashboard() {
               No Analytics Data Available
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              The Local LLM API at 127.0.0.1:5000 is not responding or has no log data.
+              The Local LLM API at 127.0.0.1:5000 is not responding or has no
+              log data.
             </p>
             <Button onClick={fetchLogs} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -408,7 +534,9 @@ export function AnalyticsDashboard() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-500" />
-            <p className="text-gray-600 dark:text-gray-400">Processing analytics data...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Processing analytics data...
+            </p>
           </div>
         </div>
       </div>
@@ -427,28 +555,30 @@ export function AnalyticsDashboard() {
             Comprehensive log analysis and performance metrics
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <Select value={timeFilter} onValueChange={setTimeFilter}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {timeFilters.map(filter => (
+              {timeFilters.map((filter) => (
                 <SelectItem key={filter.value} value={filter.value}>
                   {filter.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={fetchLogs}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -460,7 +590,9 @@ export function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Total Requests</p>
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                  Total Requests
+                </p>
                 <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
                   {analytics.totalRequests.toLocaleString()}
                 </p>
@@ -476,7 +608,9 @@ export function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">Error Rate</p>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                  Error Rate
+                </p>
                 <p className="text-2xl font-bold text-red-900 dark:text-red-100">
                   {analytics.errorRate.toFixed(2)}%
                 </p>
@@ -492,7 +626,9 @@ export function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">Avg Response Time</p>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                  Avg Response Time
+                </p>
                 <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                   {analytics.avgResponseTime.toFixed(0)}ms
                 </p>
@@ -508,7 +644,9 @@ export function AnalyticsDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Peak Hour</p>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                  Peak Hour
+                </p>
                 <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                   {analytics.peakHour}
                 </p>
@@ -555,29 +693,34 @@ export function AnalyticsDashboard() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={analytics.timeSeriesData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="timestamp" 
-                      tickFormatter={(value) => format(parseISO(value), 'HH:mm')}
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
+                    <XAxis
+                      dataKey="timestamp"
+                      tickFormatter={(value) =>
+                        format(parseISO(value), "HH:mm")
+                      }
                     />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
-                    <Area 
-                      type="monotone" 
-                      dataKey="requests" 
+                    <Area
+                      type="monotone"
+                      dataKey="requests"
                       stackId="1"
-                      stroke="#8b5cf6" 
-                      fill="#8b5cf6" 
+                      stroke="#8b5cf6"
+                      fill="#8b5cf6"
                       fillOpacity={0.6}
                       name="Requests"
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="errors" 
+                    <Area
+                      type="monotone"
+                      dataKey="errors"
                       stackId="1"
-                      stroke="#ef4444" 
-                      fill="#ef4444" 
+                      stroke="#ef4444"
+                      fill="#ef4444"
                       fillOpacity={0.8}
                       name="Errors"
                     />
@@ -599,13 +742,20 @@ export function AnalyticsDashboard() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={analytics.topEndpoints}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
                     <XAxis dataKey="endpoint" />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
                     <Bar dataKey="count" fill="#06b6d4" name="Request Count" />
-                    <Bar dataKey="avgTime" fill="#10b981" name="Avg Response Time (ms)" />
+                    <Bar
+                      dataKey="avgTime"
+                      fill="#10b981"
+                      name="Avg Response Time (ms)"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -623,20 +773,25 @@ export function AnalyticsDashboard() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={analytics.timeSeriesData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="timestamp" 
-                      tickFormatter={(value) => format(parseISO(value), 'HH:mm')}
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
+                    <XAxis
+                      dataKey="timestamp"
+                      tickFormatter={(value) =>
+                        format(parseISO(value), "HH:mm")
+                      }
                     />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="avgTime" 
-                      stroke="#f59e0b" 
+                    <Line
+                      type="monotone"
+                      dataKey="avgTime"
+                      stroke="#f59e0b"
                       strokeWidth={3}
-                      dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+                      dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
                       name="Avg Response Time (ms)"
                     />
                   </LineChart>
@@ -654,7 +809,10 @@ export function AnalyticsDashboard() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={analytics.performanceMetrics}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
                     <XAxis dataKey="endpoint" />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
@@ -685,13 +843,18 @@ export function AnalyticsDashboard() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ code, percentage }) => `${code} (${percentage.toFixed(1)}%)`}
+                        label={({ code, percentage }) =>
+                          `${code} (${percentage.toFixed(1)}%)`
+                        }
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="count"
                       >
                         {analytics.statusCodes.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -720,7 +883,10 @@ export function AnalyticsDashboard() {
                         dataKey="count"
                       >
                         {analytics.methodDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -741,14 +907,27 @@ export function AnalyticsDashboard() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={analytics.geographicData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
                     <XAxis dataKey="region" />
                     <YAxis yAxisId="left" />
                     <YAxis yAxisId="right" orientation="right" />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
-                    <Bar yAxisId="left" dataKey="requests" fill="#8b5cf6" name="Requests" />
-                    <Bar yAxisId="right" dataKey="latency" fill="#06b6d4" name="Avg Latency (ms)" />
+                    <Bar
+                      yAxisId="left"
+                      dataKey="requests"
+                      fill="#8b5cf6"
+                      name="Requests"
+                    />
+                    <Bar
+                      yAxisId="right"
+                      dataKey="latency"
+                      fill="#06b6d4"
+                      name="Avg Latency (ms)"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -766,27 +945,30 @@ export function AnalyticsDashboard() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={analytics.hourlyPattern}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="hour" 
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="opacity-30"
+                    />
+                    <XAxis
+                      dataKey="hour"
                       tickFormatter={(value) => `${value}:00`}
                     />
                     <YAxis />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend />
-                    <Area 
-                      type="monotone" 
-                      dataKey="requests" 
-                      stroke="#8b5cf6" 
-                      fill="#8b5cf6" 
+                    <Area
+                      type="monotone"
+                      dataKey="requests"
+                      stroke="#8b5cf6"
+                      fill="#8b5cf6"
                       fillOpacity={0.6}
                       name="Requests"
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="errors" 
-                      stroke="#ef4444" 
-                      fill="#ef4444" 
+                    <Area
+                      type="monotone"
+                      dataKey="errors"
+                      stroke="#ef4444"
+                      fill="#ef4444"
                       fillOpacity={0.8}
                       name="Errors"
                     />
@@ -807,7 +989,7 @@ export function AnalyticsDashboard() {
                   <RadarChart data={analytics.moduleActivity}>
                     <PolarGrid />
                     <PolarAngleAxis dataKey="module" />
-                    <PolarRadiusAxis angle={30} domain={[0, 'dataMax']} />
+                    <PolarRadiusAxis angle={30} domain={[0, "dataMax"]} />
                     <Radar
                       name="Requests"
                       dataKey="requests"
@@ -843,7 +1025,7 @@ export function AnalyticsDashboard() {
               </div>
               {lastRefresh && (
                 <span className="text-xs text-gray-500">
-                  Last updated: {format(lastRefresh, 'HH:mm:ss')}
+                  Last updated: {format(lastRefresh, "HH:mm:ss")}
                 </span>
               )}
             </div>

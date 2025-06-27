@@ -1,14 +1,20 @@
-import { useState } from 'react';
-import { Play, Copy, Check, Code, FileText, Zap, Terminal } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { useModels, useGenerate } from '@/hooks/useLocalAPI';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useState } from "react";
+import { Play, Copy, Check, Code, FileText, Zap, Terminal } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { useModels, useGenerate } from "@/hooks/useLocalAPI";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface TestRequest {
   question: string;
@@ -21,11 +27,11 @@ interface TestRequest {
 
 export default function ApiDocumentation() {
   const [testRequest, setTestRequest] = useState<TestRequest>({
-    question: 'What is the capital of India?',
-    model_name: '',
+    question: "What is the capital of India?",
+    model_name: "",
     temperature: 0.7,
     n_gpu_layers: 10,
-    n_batch: 512
+    n_batch: 512,
   });
   const [testResponse, setTestResponse] = useState<any>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -37,9 +43,9 @@ export default function ApiDocumentation() {
   const handleTest = async () => {
     if (!testRequest.model_name) {
       addNotification({
-        type: 'error',
-        title: 'Error',
-        message: 'Please select a model to test with'
+        type: "error",
+        title: "Error",
+        message: "Please select a model to test with",
       });
       return;
     }
@@ -48,15 +54,15 @@ export default function ApiDocumentation() {
       const response = await generateMutation.mutateAsync(testRequest);
       setTestResponse(response);
       addNotification({
-        type: 'success',
-        title: 'Success',
-        message: 'API test completed successfully'
+        type: "success",
+        title: "Success",
+        message: "API test completed successfully",
       });
     } catch (error) {
       addNotification({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to test API endpoint'
+        type: "error",
+        title: "Error",
+        message: "Failed to test API endpoint",
       });
     }
   };
@@ -67,7 +73,7 @@ export default function ApiDocumentation() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const curlExample = `curl --location 'http://127.0.0.1:5000/api/v1/generate' \\
+  const curlExample = `curl --location 'http://127.0.0.1:5001/api/v1/generate' \\
 --header 'Content-Type: application/json' \\
 --data '{
     "question": "What is the capital of India?",
@@ -79,7 +85,7 @@ export default function ApiDocumentation() {
 
   const javascriptExample = `// Using fetch API
 const generateText = async () => {
-  const response = await fetch('http://127.0.0.1:5000/api/v1/generate', {
+  const response = await fetch('http://127.0.0.1:5001/api/v1/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -102,7 +108,7 @@ import axios from 'axios';
 
 const generateText = async () => {
   try {
-    const response = await axios.post('http://127.0.0.1:5000/api/v1/generate', {
+    const response = await axios.post('http://127.0.0.1:5001/api/v1/generate', {
       question: "What is the capital of India?",
       model_name: "Llama-3.2-3B-Instruct-Q4_0",
       temperature: 0.7,
@@ -121,7 +127,7 @@ import json
 
 # Using requests library
 def generate_text():
-    url = "http://127.0.0.1:5000/api/v1/generate"
+    url = "http://127.0.0.1:5001/api/v1/generate"
     
     payload = {
         "question": "What is the capital of India?",
@@ -154,7 +160,7 @@ import aiohttp
 import asyncio
 
 async def generate_text_async():
-    url = "http://127.0.0.1:5000/api/v1/generate"
+    url = "http://127.0.0.1:5001/api/v1/generate"
     
     payload = {
         "question": "What is the capital of India?",
@@ -174,7 +180,7 @@ async def generate_text_async():
   const nodeExample = `// Node.js with built-in fetch (Node 18+)
 const generateText = async () => {
   try {
-    const response = await fetch('http://127.0.0.1:5000/api/v1/generate', {
+    const response = await fetch('http://127.0.0.1:5001/api/v1/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -200,7 +206,7 @@ const axios = require('axios');
 
 const generateText = async () => {
   try {
-    const response = await axios.post('http://127.0.0.1:5000/api/v1/generate', {
+    const response = await axios.post('http://127.0.0.1:5001/api/v1/generate', {
       question: "What is the capital of India?",
       model_name: "Llama-3.2-3B-Instruct-Q4_0",
       temperature: 0.7,
@@ -217,7 +223,7 @@ const generateText = async () => {
   const phpExample = `<?php
 // Using cURL
 function generateText() {
-    $url = 'http://127.0.0.1:5000/api/v1/generate';
+    $url = 'http://127.0.0.1:5001/api/v1/generate';
     
     $data = array(
         'question' => 'What is the capital of India?',
@@ -269,7 +275,9 @@ try {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs text-emerald-400 font-medium">API Docs</span>
+              <span className="text-xs text-emerald-400 font-medium">
+                API Docs
+              </span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-1.5">
@@ -279,7 +287,9 @@ try {
               <div className="w-px h-3 bg-border" />
               <div className="flex items-center space-x-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span className="text-xs text-muted-foreground">JSON Format</span>
+                <span className="text-xs text-muted-foreground">
+                  JSON Format
+                </span>
               </div>
             </div>
           </div>
@@ -288,7 +298,8 @@ try {
               API Documentation
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">
-              Generate API Documentation • Integration Guide • Code Examples • Live Testing
+              Generate API Documentation • Integration Guide • Code Examples •
+              Live Testing
             </p>
           </div>
         </div>
@@ -308,20 +319,28 @@ try {
             <CardContent className="space-y-3 sm:space-y-4">
               <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                  <Badge
+                    variant="outline"
+                    className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                  >
                     POST
                   </Badge>
-                  <code className="text-sm font-mono">http://127.0.0.1:5000/api/v1/generate</code>
+                  <code className="text-sm font-mono">
+                    http://127.0.0.1:5001/api/v1/generate
+                  </code>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Generate text using a specified LLM model with configurable parameters.
+                  Generate text using a specified LLM model with configurable
+                  parameters.
                 </p>
               </div>
 
               <div>
                 <h4 className="font-semibold mb-2">Request Headers</h4>
                 <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded">
-                  <code className="text-sm">Content-Type: application/json</code>
+                  <code className="text-sm">
+                    Content-Type: application/json
+                  </code>
                 </div>
               </div>
 
@@ -330,56 +349,104 @@ try {
                 <div className="space-y-3">
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">question</code>
-                      <Badge variant="destructive" className="text-xs">required</Badge>
-                      <Badge variant="secondary" className="text-xs">string</Badge>
+                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                        question
+                      </code>
+                      <Badge variant="destructive" className="text-xs">
+                        required
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        string
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">The text prompt or question to generate a response for.</p>
+                    <p className="text-sm text-muted-foreground">
+                      The text prompt or question to generate a response for.
+                    </p>
                   </div>
 
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">model_name</code>
-                      <Badge variant="destructive" className="text-xs">required</Badge>
-                      <Badge variant="secondary" className="text-xs">string</Badge>
+                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                        model_name
+                      </code>
+                      <Badge variant="destructive" className="text-xs">
+                        required
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        string
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Name of the model to use for generation.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Name of the model to use for generation.
+                    </p>
                   </div>
 
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">temperature</code>
-                      <Badge variant="outline" className="text-xs">optional</Badge>
-                      <Badge variant="secondary" className="text-xs">number</Badge>
+                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                        temperature
+                      </code>
+                      <Badge variant="outline" className="text-xs">
+                        optional
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        number
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Controls randomness (0.0-1.0). Default: 0.7</p>
+                    <p className="text-sm text-muted-foreground">
+                      Controls randomness (0.0-1.0). Default: 0.7
+                    </p>
                   </div>
 
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">n_gpu_layers</code>
-                      <Badge variant="outline" className="text-xs">optional</Badge>
-                      <Badge variant="secondary" className="text-xs">number</Badge>
+                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                        n_gpu_layers
+                      </code>
+                      <Badge variant="outline" className="text-xs">
+                        optional
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        number
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Number of GPU layers to use. Default: 10</p>
+                    <p className="text-sm text-muted-foreground">
+                      Number of GPU layers to use. Default: 10
+                    </p>
                   </div>
 
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">n_batch</code>
-                      <Badge variant="outline" className="text-xs">optional</Badge>
-                      <Badge variant="secondary" className="text-xs">number</Badge>
+                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                        n_batch
+                      </code>
+                      <Badge variant="outline" className="text-xs">
+                        optional
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        number
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Batch size for processing. Default: 512</p>
+                    <p className="text-sm text-muted-foreground">
+                      Batch size for processing. Default: 512
+                    </p>
                   </div>
 
                   <div className="border rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">template</code>
-                      <Badge variant="outline" className="text-xs">optional</Badge>
-                      <Badge variant="secondary" className="text-xs">string</Badge>
+                      <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
+                        template
+                      </code>
+                      <Badge variant="outline" className="text-xs">
+                        optional
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        string
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">Custom prompt template for the model.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Custom prompt template for the model.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -388,7 +455,7 @@ try {
                 <h4 className="font-semibold mb-2">Response Format</h4>
                 <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded">
                   <pre className="text-sm">
-{`{
+                    {`{
   "success": true,
   "response": "New Delhi is the capital of India.",
   "model_used": "Llama-3.2-3B-Instruct-Q4_0",
@@ -425,9 +492,13 @@ try {
                       size="sm"
                       variant="outline"
                       className="absolute top-2 right-2 z-10"
-                      onClick={() => copyToClipboard(curlExample, 'curl')}
+                      onClick={() => copyToClipboard(curlExample, "curl")}
                     >
-                      {copiedCode === 'curl' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copiedCode === "curl" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                     <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm">
                       <code>{curlExample}</code>
@@ -441,9 +512,15 @@ try {
                       size="sm"
                       variant="outline"
                       className="absolute top-2 right-2 z-10"
-                      onClick={() => copyToClipboard(javascriptExample, 'javascript')}
+                      onClick={() =>
+                        copyToClipboard(javascriptExample, "javascript")
+                      }
                     >
-                      {copiedCode === 'javascript' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copiedCode === "javascript" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                     <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">
                       <code>{javascriptExample}</code>
@@ -457,9 +534,13 @@ try {
                       size="sm"
                       variant="outline"
                       className="absolute top-2 right-2 z-10"
-                      onClick={() => copyToClipboard(pythonExample, 'python')}
+                      onClick={() => copyToClipboard(pythonExample, "python")}
                     >
-                      {copiedCode === 'python' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copiedCode === "python" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                     <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">
                       <code>{pythonExample}</code>
@@ -473,9 +554,13 @@ try {
                       size="sm"
                       variant="outline"
                       className="absolute top-2 right-2 z-10"
-                      onClick={() => copyToClipboard(nodeExample, 'nodejs')}
+                      onClick={() => copyToClipboard(nodeExample, "nodejs")}
                     >
-                      {copiedCode === 'nodejs' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copiedCode === "nodejs" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                     <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">
                       <code>{nodeExample}</code>
@@ -489,9 +574,13 @@ try {
                       size="sm"
                       variant="outline"
                       className="absolute top-2 right-2 z-10"
-                      onClick={() => copyToClipboard(phpExample, 'php')}
+                      onClick={() => copyToClipboard(phpExample, "php")}
                     >
-                      {copiedCode === 'php' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copiedCode === "php" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
                     </Button>
                     <pre className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">
                       <code>{phpExample}</code>
@@ -514,10 +603,14 @@ try {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Question</label>
+                <label className="text-sm font-medium mb-1 block">
+                  Question
+                </label>
                 <Textarea
                   value={testRequest.question}
-                  onChange={(e) => setTestRequest({ ...testRequest, question: e.target.value })}
+                  onChange={(e) =>
+                    setTestRequest({ ...testRequest, question: e.target.value })
+                  }
                   placeholder="Enter your question or prompt..."
                   rows={3}
                 />
@@ -527,7 +620,9 @@ try {
                 <label className="text-sm font-medium mb-1 block">Model</label>
                 <Select
                   value={testRequest.model_name}
-                  onValueChange={(value) => setTestRequest({ ...testRequest, model_name: value })}
+                  onValueChange={(value) =>
+                    setTestRequest({ ...testRequest, model_name: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a model" />
@@ -543,36 +638,57 @@ try {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">Temperature</label>
+                <label className="text-sm font-medium mb-1 block">
+                  Temperature
+                </label>
                 <Input
                   type="number"
                   min="0"
                   max="1"
                   step="0.1"
                   value={testRequest.temperature}
-                  onChange={(e) => setTestRequest({ ...testRequest, temperature: parseFloat(e.target.value) })}
+                  onChange={(e) =>
+                    setTestRequest({
+                      ...testRequest,
+                      temperature: parseFloat(e.target.value),
+                    })
+                  }
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">GPU Layers</label>
+                <label className="text-sm font-medium mb-1 block">
+                  GPU Layers
+                </label>
                 <Input
                   type="number"
                   min="0"
                   max="50"
                   value={testRequest.n_gpu_layers}
-                  onChange={(e) => setTestRequest({ ...testRequest, n_gpu_layers: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setTestRequest({
+                      ...testRequest,
+                      n_gpu_layers: parseInt(e.target.value),
+                    })
+                  }
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-1 block">Batch Size</label>
+                <label className="text-sm font-medium mb-1 block">
+                  Batch Size
+                </label>
                 <Input
                   type="number"
                   min="1"
                   max="2048"
                   value={testRequest.n_batch}
-                  onChange={(e) => setTestRequest({ ...testRequest, n_batch: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setTestRequest({
+                      ...testRequest,
+                      n_batch: parseInt(e.target.value),
+                    })
+                  }
                 />
               </div>
 
@@ -582,7 +698,7 @@ try {
                 className="w-full"
               >
                 <Play className="h-4 w-4 mr-2" />
-                {generateMutation.isPending ? 'Testing...' : 'Test API'}
+                {generateMutation.isPending ? "Testing..." : "Test API"}
               </Button>
             </CardContent>
           </Card>
@@ -599,8 +715,10 @@ try {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Badge variant={testResponse.success ? "default" : "destructive"}>
-                      {testResponse.success ? 'Success' : 'Error'}
+                    <Badge
+                      variant={testResponse.success ? "default" : "destructive"}
+                    >
+                      {testResponse.success ? "Success" : "Error"}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
                       {testResponse.processing_time?.toFixed(2)}s
@@ -610,8 +728,8 @@ try {
                   <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg">
                     <p className="text-sm font-medium mb-1">Generated Text:</p>
                     <p className="text-sm">
-                      {typeof testResponse.response === 'string' 
-                        ? testResponse.response 
+                      {typeof testResponse.response === "string"
+                        ? testResponse.response
                         : JSON.stringify(testResponse.response)}
                     </p>
                   </div>
@@ -619,7 +737,9 @@ try {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="font-medium">Model:</span>
-                      <p className="truncate">{String(testResponse.model_used || 'N/A')}</p>
+                      <p className="truncate">
+                        {String(testResponse.model_used || "N/A")}
+                      </p>
                     </div>
                     <div>
                       <span className="font-medium">Tokens:</span>
@@ -628,7 +748,9 @@ try {
                   </div>
 
                   <details className="text-xs">
-                    <summary className="cursor-pointer font-medium">Raw JSON Response</summary>
+                    <summary className="cursor-pointer font-medium">
+                      Raw JSON Response
+                    </summary>
                     <pre className="bg-slate-900 text-slate-100 p-2 rounded mt-2 overflow-x-auto">
                       {JSON.stringify(testResponse, null, 2)}
                     </pre>
