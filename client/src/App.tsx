@@ -18,6 +18,7 @@ import ExternalLogs from "@/pages/ExternalLogs";
 import Analytics from "@/pages/Analytics";
 import DeepSeekModels from "@/pages/DeepSeekModels";
 import DeepSeekGeneration from "@/pages/DeepSeekGeneration";
+import DeepSeekApiDocs from "@/pages/DeepSeekApiDocs";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -42,6 +43,7 @@ function AppContent() {
               <Route path="/analytics" component={Analytics} />
               <Route path="/deepseek/models" component={DeepSeekModels} />
               <Route path="/deepseek/generation" component={DeepSeekGeneration} />
+              <Route path="/deepseek/api-docs" component={DeepSeekApiDocs} />
               <Route component={NotFound} />
             </Switch>
           </div>

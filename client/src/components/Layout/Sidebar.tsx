@@ -14,7 +14,8 @@ import {
   Zap,
   Activity,
   Sparkles,
-  Cpu
+  Cpu,
+  FileCode
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const navigation = [
 const deepSeekNavigation = [
   { name: 'DS Models', href: '/deepseek/models', icon: Cpu },
   { name: 'DS Generation', href: '/deepseek/generation', icon: Sparkles },
+  { name: 'DS API Docs', href: '/deepseek/api-docs', icon: FileCode },
 ];
 
 export function Sidebar() {
