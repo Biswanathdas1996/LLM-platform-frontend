@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise LLM Platform - Secure On-Premise AI for Modern Business</title>
+    <meta name="description" content="Deploy powerful AI models on-premise with complete data sovereignty. Enterprise-grade LLM platform for secure, offline AI operations.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #1a1a2e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 0;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.7rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 6rem 0;
+            background: white;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero .subtitle {
+            font-size: 1.4rem;
+            color: #4a5568;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-badges {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: #f7fafc;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .badge-icon {
+            width: 24px;
+            height: 24px;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background: #f8f9fa;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #1a1a2e;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+        }
+        
+        .feature-card p {
+            color: #4a5568;
+            line-height: 1.7;
+        }
+        
+        /* Thought Leadership Section */
+        .thought-leadership {
+            padding: 5rem 0;
+            background: white;
+        }
+        
+        .thought-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .thought-article {
+            margin-bottom: 3rem;
+        }
+        
+        .thought-article h3 {
+            font-size: 1.8rem;
+            color: #1a1a2e;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .thought-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .thought-article p {
+            color: #4a5568;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box h4 {
+            color: #1a1a2e;
+            margin-bottom: 0.8rem;
+        }
+        
+        .highlight-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .highlight-box li {
+            padding: 0.5rem 0;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .highlight-box li::before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        /* Architecture Section */
+        .architecture {
+            padding: 5rem 0;
+            background: #f8f9fa;
+        }
+        
+        .architecture-image {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: block;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Screenshots Section */
+        .screenshots {
+            padding: 5rem 0;
+            background: white;
+        }
+        
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+        
+        .screenshot-item {
+            text-align: center;
+        }
+        
+        .screenshot-item img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transition: transform 0.3s;
+        }
+        
+        .screenshot-item img:hover {
+            transform: scale(1.05);
+        }
+        
+        .screenshot-item h4 {
+            margin-top: 1.5rem;
+            font-size: 1.3rem;
+            color: #1a1a2e;
+        }
+        
+        .screenshot-item p {
+            margin-top: 0.5rem;
+            color: #4a5568;
+        }
+        
+        /* Benefits Section */
+        .benefits {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .benefits .section-title {
+            color: white;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .benefit-item {
+            text-align: center;
+        }
+        
+        .benefit-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .benefit-label {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            padding: 5rem 0;
+            background: white;
+            text-align: center;
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #1a1a2e;
+        }
+        
+        .cta-section p {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 2.5rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .secondary-button {
+            background: white;
+            color: #667eea;
+            padding: 0.7rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid #667eea;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .secondary-button:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1a1a2e;
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .footer-content {
+            margin-bottom: 2rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #a0aec0;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #667eea;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .screenshots-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <div class="logo">🚀 LLM Platform</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#security">Security</a></li>
+                <li><a href="#screenshots">Demo</a></li>
+            </ul>
+            <a href="#cta" class="cta-button">Get Started</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Enterprise LLM Platform</h1>
+            <p class="subtitle">Deploy powerful AI models on-premise with complete data sovereignty. Run state-of-the-art language models offline, ensuring maximum security and compliance for your enterprise.</p>
+            
+            <div class="hero-badges">
+                <div class="badge">
+                    <span class="badge-icon">🔒</span>
+                    <span>100% On-Premise</span>
+                </div>
+                <div class="badge">
+                    <span class="badge-icon">🛡️</span>
+                    <span>SOC2 Compliant</span>
+                </div>
+                <div class="badge">
+                    <span class="badge-icon">⚡</span>
+                    <span>Sub-300ms Response</span>
+                </div>
+                <div class="badge">
+                    <span class="badge-icon">🔧</span>
+                    <span>GGUF Support</span>
+                </div>
+            </div>
+            
+            <div class="cta-buttons">
+                <a href="#demo" class="cta-button">View Live Demo</a>
+                <a href="#architecture" class="secondary-button">Technical Overview</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Thought Leadership Section -->
+    <section class="thought-leadership">
+        <div class="container">
+            <h2 class="section-title">Why On-Premise LLM is the Future of Enterprise AI</h2>
+            
+            <div class="thought-content">
+                <div class="thought-article">
+                    <h3>
+                        <span class="thought-icon">🏢</span>
+                        The Enterprise AI Revolution
+                    </h3>
+                    <p>
+                        In an era where data is the new oil, enterprises face a critical challenge: how to leverage the power of Large Language Models while maintaining absolute control over sensitive information. Cloud-based AI solutions, while convenient, present significant risks for organizations handling confidential data, intellectual property, and regulated information.
+                    </p>
+                    <p>
+                        Our platform represents a paradigm shift in enterprise AI deployment. By enabling organizations to run powerful language models entirely on-premise, we eliminate the traditional trade-off between AI capabilities and data security. This isn't just about compliance—it's about competitive advantage.
+                    </p>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>Key Business Benefits</h4>
+                    <ul>
+                        <li>Complete data sovereignty - Your data never leaves your infrastructure</li>
+                        <li>Zero latency to cloud - Sub-300ms response times for real-time applications</li>
+                        <li>Predictable costs - No usage-based pricing or API rate limits</li>
+                        <li>Regulatory compliance - Meet GDPR, HIPAA, and industry-specific requirements</li>
+                        <li>Intellectual property protection - Keep proprietary knowledge secure</li>
+                    </ul>
+                </div>
+
+                <div class="thought-article">
+                    <h3>
+                        <span class="thought-icon">🔐</span>
+                        Security-First Architecture
+                    </h3>
+                    <p>
+                        Traditional cloud AI services require sending your data to external servers, creating multiple points of vulnerability. Every API call is a potential security risk, every data transfer a compliance concern. For industries like healthcare, finance, and defense, these risks are simply unacceptable.
+                    </p>
+                    <p>
+                        Our on-premise solution operates entirely within your security perimeter. Models are loaded into memory on your servers, processed by your hardware, and results are delivered without any external communication. This air-gapped approach ensures that sensitive information—whether it's patient records, financial data, or strategic plans—remains completely under your control.
+                    </p>
+                </div>
+
+                <div class="thought-article">
+                    <h3>
+                        <span class="thought-icon">💡</span>
+                        Offline Operation: The Ultimate Resilience
+                    </h3>
+                    <p>
+                        Internet outages, API downtime, and network issues can cripple cloud-dependent AI systems. Our platform's offline capability ensures business continuity regardless of external factors. Whether you're operating in secure facilities, remote locations, or simply need guaranteed uptime, offline LLM deployment provides unmatched reliability.
+                    </p>
+                    <p>
+                        This resilience extends beyond mere availability. Offline operation means consistent performance, predictable response times, and the ability to scale horizontally within your infrastructure without external dependencies or rate limits.
+                    </p>
+                </div>
+
+                <div class="highlight-box">
+                    <h4>Industry Applications</h4>
+                    <ul>
+                        <li><strong>Healthcare:</strong> Process patient data and medical records without HIPAA concerns</li>
+                        <li><strong>Finance:</strong> Analyze sensitive financial data and trading strategies securely</li>
+                        <li><strong>Legal:</strong> Review confidential documents and contracts with complete privacy</li>
+                        <li><strong>Defense:</strong> Deploy AI capabilities in classified and air-gapped environments</li>
+                        <li><strong>Research:</strong> Protect intellectual property and proprietary research data</li>
+                    </ul>
+                </div>
+
+                <div class="thought-article">
+                    <h3>
+                        <span class="thought-icon">🚀</span>
+                        Performance Without Compromise
+                    </h3>
+                    <p>
+                        Contrary to common misconceptions, on-premise LLM deployment doesn't mean sacrificing performance. With modern hardware acceleration, optimized model formats like GGUF, and intelligent caching strategies, our platform delivers response times that rival or exceed cloud solutions—without the network latency.
+                    </p>
+                    <p>
+                        The platform supports the latest quantized models, enabling enterprises to run billion-parameter models on commodity hardware. This democratization of AI infrastructure means that advanced language processing is no longer limited to organizations with massive cloud budgets.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Enterprise-Grade Features</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Complete Data Privacy</h3>
+                    <p>Your data never leaves your infrastructure. Process sensitive information with confidence, knowing that all AI operations happen within your security perimeter.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>High Performance</h3>
+                    <p>Optimized for speed with sub-300ms response times. Support for quantized models enables efficient processing on standard enterprise hardware.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Model Flexibility</h3>
+                    <p>Support for GGUF, ONNX, and other optimized formats. Deploy any open-source model or train custom models for your specific use case.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Comprehensive monitoring and analytics dashboard. Track usage patterns, performance metrics, and optimize model deployment.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Intelligent Caching</h3>
+                    <p>Smart caching system reduces latency and improves throughput. Frequently used responses are served instantly from cache.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Hybrid Deployment</h3>
+                    <p>Seamlessly integrate with external APIs when needed. Maintain flexibility while prioritizing on-premise operations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="architecture" id="architecture">
+        <div class="container">
+            <h2 class="section-title">Technical Architecture</h2>
+            <img src="attached_assets/generated_images/LLM_platform_architecture_diagram_8c92db21.png" alt="LLM Platform Architecture Diagram" class="architecture-image">
+            
+            <div style="max-width: 900px; margin: 3rem auto; text-align: center;">
+                <p style="color: #4a5568; font-size: 1.1rem; line-height: 1.8;">
+                    Our microservices architecture ensures scalability, maintainability, and security. Each component is isolated and can be scaled independently based on demand. The platform integrates seamlessly with existing enterprise infrastructure while maintaining complete data isolation.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="screenshots" id="screenshots">
+        <div class="container">
+            <h2 class="section-title">See It In Action</h2>
+            
+            <div class="screenshots-grid">
+                <div class="screenshot-item">
+                    <img src="attached_assets/generated_images/LLM_platform_dashboard_screenshot_f47aa116.png" alt="Dashboard Screenshot">
+                    <h4>Intuitive Dashboard</h4>
+                    <p>Monitor all your models, performance metrics, and system health in one unified interface.</p>
+                </div>
+                
+                <div class="screenshot-item">
+                    <img src="attached_assets/generated_images/Text_generation_interface_mockup_de7bb0ce.png" alt="Text Generation Interface">
+                    <h4>Advanced Text Generation</h4>
+                    <p>Fine-tune parameters, test prompts, and generate responses with complete control.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits" id="security">
+        <div class="container">
+            <h2 class="section-title">Security & Compliance Benefits</h2>
+            
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <div class="benefit-number">100%</div>
+                    <div class="benefit-label">Data Sovereignty</div>
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-number">0</div>
+                    <div class="benefit-label">External API Calls</div>
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-number">24/7</div>
+                    <div class="benefit-label">Offline Operation</div>
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-number">∞</div>
+                    <div class="benefit-label">Scalability</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="cta">
+        <div class="container">
+            <h2>Ready to Take Control of Your AI Infrastructure?</h2>
+            <p>Join leading enterprises who have already secured their AI operations with on-premise deployment.</p>
+            
+            <div class="cta-buttons">
+                <a href="#" class="cta-button">Schedule Demo</a>
+                <a href="#" class="secondary-button">Download Whitepaper</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo" style="color: white; margin-bottom: 1rem;">🚀 LLM Platform</div>
+                <p style="color: #a0aec0;">Empowering enterprises with secure, on-premise AI solutions.</p>
+            </div>
+            
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Security</a>
+                <a href="#">Documentation</a>
+                <a href="#">Support</a>
+                <a href="#">Contact</a>
+            </div>
+            
+            <p style="color: #718096; font-size: 0.9rem;">© 2025 LLM Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and screenshot items
+        document.querySelectorAll('.feature-card, .screenshot-item, .thought-article').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
