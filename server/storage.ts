@@ -58,6 +58,19 @@ export class RAGStorage {
         
         for (const indexData of indexesData) {
           this.indexes.set(indexData.name, indexData);
+          
+          // Re-register all chunks with TF-IDF for keyword search
+          for (const doc of indexData.documents) {
+            for (const chunk of doc.chunks) {
+              this.tfidf.addDocument(chunk.text, {
+                __key: {
+                  indexName: indexData.name,
+                  documentId: doc.id,
+                  chunkId: chunk.id
+                }
+              });
+            }
+          }
         }
       }
     } catch (error) {
@@ -186,9 +199,11 @@ export class RAGStorage {
       // Add to TF-IDF for keyword search
       document.chunks.forEach(chunk => {
         this.tfidf.addDocument(chunk.text, {
-          documentId: document.id,
-          chunkId: chunk.id,
-          indexName
+          __key: {
+            documentId: document.id,
+            chunkId: chunk.id,
+            indexName
+          }
         });
       });
 
@@ -278,17 +293,16 @@ export class RAGStorage {
 
       if (mode === 'keyword' || mode === 'hybrid') {
         // Keyword search using TF-IDF
-        const keywordResults = this.tfidf.tfidfs(query);
+        const keywordResults: { score: number; metadata: any }[] = [];
+        this.tfidf.tfidfs(query, (i: number, measure: number) => {
+          const doc = this.tfidf.documents[i];
+          if (doc && doc.__key && doc.__key.indexName === indexName) {
+            keywordResults.push({ score: measure, metadata: doc.__key });
+          }
+        });
+        
         const topKeywordResults = keywordResults
-          .map((score: number, idx: number) => {
-            const doc = this.tfidf.documents[idx];
-            if (doc && doc.__key && doc.__key.indexName === indexName) {
-              return { score, metadata: doc.__key };
-            }
-            return null;
-          })
-          .filter(Boolean)
-          .sort((a: any, b: any) => b.score - a.score)
+          .sort((a, b) => b.score - a.score)
           .slice(0, k);
 
         // Get the actual chunks

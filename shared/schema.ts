@@ -48,11 +48,11 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 });
 
 export type Model = typeof models.$inferSelect;
-export type InsertModel = z.infer<typeof insertModelSchema>;
+export type InsertModel = z.TypeOf<typeof insertModelSchema>;
 export type ExternalApi = typeof externalApis.$inferSelect;
-export type InsertExternalApi = z.infer<typeof insertExternalApiSchema>;
+export type InsertExternalApi = z.TypeOf<typeof insertExternalApiSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
-export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type InsertChatMessage = z.TypeOf<typeof insertChatMessageSchema>;
 
 export interface RAGIndex {
   name: string;
