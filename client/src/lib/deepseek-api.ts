@@ -16,6 +16,8 @@ export interface DeepSeekGenerateRequest {
   top_p?: number;
   top_k?: number;
   repeat_penalty?: number;
+  stop?: string[];
+  use_mlock?: boolean;
 }
 
 export interface DeepSeekGenerateResponse {
@@ -33,6 +35,7 @@ export interface DeepSeekHealthResponse {
   service: string;
   version?: string;
   uptime?: string;
+  success: boolean;
 }
 
 export interface DeepSeekModelsResponse {
@@ -42,54 +45,65 @@ export interface DeepSeekModelsResponse {
 }
 
 export class DeepSeekAPI {
-  private baseUrl = 'http://localhost:5001';
+  private baseURL: string;
 
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+  constructor() {
+    // Default to localhost:5000 where the Flask backend runs
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  }
+
+  private async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
     
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
     try {
       const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
         ...options,
+        headers: defaultHeaders,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('DeepSeek API request failed:', error);
+      console.error(`DeepSeek API Error (${endpoint}):`, error);
       throw error;
     }
   }
 
   async health(): Promise<DeepSeekHealthResponse> {
-    return this.request<DeepSeekHealthResponse>('/api/deepseek/health');
+    return this.makeRequest<DeepSeekHealthResponse>('/api/deepseek/health');
   }
 
   async getModels(): Promise<DeepSeekModelsResponse> {
-    return this.request<DeepSeekModelsResponse>('/api/deepseek/models');
+    return this.makeRequest<DeepSeekModelsResponse>('/api/deepseek/models');
   }
 
   async getModel(name: string): Promise<{ success: boolean; model: DeepSeekModel }> {
-    return this.request<{ success: boolean; model: DeepSeekModel }>(`/api/deepseek/models/${name}`);
+    return this.makeRequest<{ success: boolean; model: DeepSeekModel }>(`/api/deepseek/models/${name}`);
   }
 
   async generate(request: DeepSeekGenerateRequest): Promise<DeepSeekGenerateResponse> {
-    return this.request<DeepSeekGenerateResponse>('/api/deepseek/generate', {
+    return this.makeRequest<DeepSeekGenerateResponse>('/api/deepseek/generate', {
       method: 'POST',
       body: JSON.stringify(request),
     });
   }
 
-  async quickTest(): Promise<DeepSeekGenerateResponse> {
-    return this.request<DeepSeekGenerateResponse>('/api/deepseek/test', {
+  async quickTest(prompt?: string): Promise<DeepSeekGenerateResponse> {
+    const testPayload = prompt ? { prompt } : {};
+    return this.makeRequest<DeepSeekGenerateResponse>('/api/deepseek/test', {
       method: 'POST',
+      body: JSON.stringify(testPayload),
     });
   }
 }
