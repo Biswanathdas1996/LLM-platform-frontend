@@ -16,8 +16,14 @@ if __name__ == '__main__':
         # Create application
         app = create_app(config_name)
         
+        # Trigger warmup if enabled
+        if hasattr(app, 'warmup_models_background'):
+            app.warmup_models_background()
+        
         # Run application
         print(f"Starting server on {host}:{port}")
+        print("Press Ctrl+C to stop the server")
+        
         app.run(
             host=host,
             port=port,
@@ -31,4 +37,6 @@ if __name__ == '__main__':
         sys.exit(0)
     except Exception as e:
         print(f"\n❌ Failed to start application: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)

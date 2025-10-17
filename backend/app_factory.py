@@ -1,5 +1,6 @@
 """
 Application factory and initialization with concurrency support.
+Updated to use OptimizedLLMService for better performance.
 """
 import os
 import logging
@@ -7,7 +8,7 @@ from flask import Flask
 from flask_cors import CORS
 from config import config
 from models.model_manager import ModelManager
-from services.llm_service import LLMService
+from services.optimized_llm_service import OptimizedLLMService
 from services.concurrency_manager import ConcurrencyManager
 from DeepSeekLLM.deepseek_routes import create_deepseek_routes
 from api.routes import create_api_blueprint
@@ -53,7 +54,7 @@ def create_app(config_name=None):
         models_json_file=app_config.MODELS_JSON_FILE
     )
     
-    llm_service = LLMService(app_config)
+    llm_service = OptimizedLLMService(app_config)
     
     # Initialize concurrency manager
     concurrency_manager = ConcurrencyManager(app_config)
@@ -63,6 +64,40 @@ def create_app(config_name=None):
     app.llm_service = llm_service
     app.concurrency_manager = concurrency_manager
     
+    # Warmup models if enabled
+    if app_config.ENABLE_MODEL_WARMUP:
+        def warmup_models_background():
+            """Warmup models on application startup."""
+            import asyncio
+            import threading
+            
+            def run_warmup():
+                try:
+                    # Get available models for warmup
+                    models_data = model_manager.update_models_list()
+                    available_models = models_data.get('models', [])
+                    if available_models:
+                        model_paths = [
+                            model_manager.get_model_path(model['name']) 
+                            for model in available_models[:2]  # Warmup first 2 models
+                        ]
+                        
+                        # Run warmup in background thread
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop.run_until_complete(llm_service.warmup_models(model_paths))
+                        loop.close()
+                        
+                        logging.info("Model warmup completed successfully")
+                except Exception as e:
+                    logging.warning(f"Model warmup failed: {e}")
+            
+            # Run warmup in background thread to avoid blocking startup
+            warmup_thread = threading.Thread(target=run_warmup, daemon=True)
+            warmup_thread.start()
+        
+        # Start warmup in background after app creation
+        app.warmup_models_background = warmup_models_background
 
     # Register blueprints
     api_blueprint = create_api_blueprint(app_config, model_manager, llm_service)

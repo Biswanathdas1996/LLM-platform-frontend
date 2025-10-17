@@ -88,3 +88,13 @@ export function useExternalLogs() {
     staleTime: 10000, // Cache for 10 seconds
   });
 }
+
+export function usePerformanceMetrics() {
+  return useQuery({
+    queryKey: ['performance-metrics'],
+    queryFn: () => api.getPerformanceMetrics(),
+    refetchInterval: 15000, // Refetch every 15 seconds
+    retry: 0,
+    staleTime: 5000, // Cache for 5 seconds
+  });
+}

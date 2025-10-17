@@ -55,6 +55,11 @@ def create_api_blueprint(config, model_manager, llm_service) -> Blueprint:
         """Get cache status."""
         return handlers.cache_status()
     
+    @api.route('/performance', methods=['GET'])
+    def performance_metrics():
+        """Get performance metrics and optimization status."""
+        return handlers.performance_metrics()
+    
     @api.route('/upload', methods=['POST'])
     def upload_model_api():
         """Get cache status."""

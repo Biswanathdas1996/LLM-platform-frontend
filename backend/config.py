@@ -58,6 +58,13 @@ class Config:
     ENABLE_MODEL_PRELOADING = os.environ.get('ENABLE_MODEL_PRELOADING', 'False').lower() == 'true'
     ENABLE_REQUEST_QUEUE = os.environ.get('ENABLE_REQUEST_QUEUE', 'True').lower() == 'true'
     ENABLE_ASYNC_PROCESSING = os.environ.get('ENABLE_ASYNC_PROCESSING', 'True').lower() == 'true'
+    
+    # Optimized LLM settings
+    ENABLE_MODEL_WARMUP = os.environ.get('ENABLE_MODEL_WARMUP', 'True').lower() == 'true'
+    MAX_CACHED_MODELS = int(os.environ.get('MAX_CACHED_MODELS', 3))
+    ENABLE_MEMORY_MAPPING = os.environ.get('ENABLE_MEMORY_MAPPING', 'True').lower() == 'true'
+    ENABLE_MEMORY_LOCK = os.environ.get('ENABLE_MEMORY_LOCK', 'True').lower() == 'true'
+    OPTIMIZATION_LEVEL = os.environ.get('OPTIMIZATION_LEVEL', 'high')  # low, medium, high
 
 class DevelopmentConfig(Config):
     """Development configuration."""

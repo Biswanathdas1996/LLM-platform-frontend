@@ -1,6 +1,7 @@
 """
 Route handlers for both API and legacy endpoints with concurrency support.
 This module contains the business logic that can be shared between different route implementations.
+Updated to use OptimizedLLMService for better performance.
 """
 import asyncio
 import logging
@@ -171,7 +172,7 @@ class RouteHandlers:
     @log_endpoint("generate_response")
     @async_route
     async def generate_response(self):
-        """Handle text generation requests with async processing."""
+        """Handle text generation requests with async processing - uses exact frontend model selection."""
         try:
             data = request.get_json()
             
@@ -188,64 +189,85 @@ class RouteHandlers:
             if not model_name:
                 return jsonify({"error": "Model name is required"}), 400
             
-            # Get model path
-            model_path = self.model_manager.get_model_path(model_name)
+            # Use exact model name as provided by frontend - no modifications
+            frontend_model_name = model_name.strip()
             
-            # Check if model exists
-            if not self.model_manager.model_exists(model_name + '.gguf' if not model_name.endswith('.gguf') else model_name):
-                return jsonify({"error": "Model not found"}), 404
+            # Get model path using the exact frontend-provided name
+            model_path = self.model_manager.get_model_path(frontend_model_name)
             
-            # Extract additional parameters
+            # Strict validation - must use exactly what frontend requested
+            model_filename = frontend_model_name + '.gguf' if not frontend_model_name.endswith('.gguf') else frontend_model_name
+            
+            if not self.model_manager.model_exists(model_filename):
+                return jsonify({
+                    "error": f"Requested model '{frontend_model_name}' not found",
+                    "requested_model": frontend_model_name,
+                    "expected_file": model_filename
+                }), 404
+            
+            # Extract additional parameters - use frontend values or safe defaults
             template = data.get('template')
             llm_params = {
                 'n_gpu_layers': data.get('n_gpu_layers', self.app_config.DEFAULT_N_GPU_LAYERS),
                 'n_batch': data.get('n_batch', self.app_config.DEFAULT_N_BATCH),
-                'temperature': data.get('temperature')
+                'temperature': data.get('temperature', self.app_config.DEFAULT_TEMPERATURE),
+                'max_tokens': data.get('max_tokens', 200),
+                'n_ctx': data.get('n_ctx', 4096)
             }
             
-            # Remove None values
+            # Remove None values but keep zeros and explicit values
             llm_params = {k: v for k, v in llm_params.items() if v is not None}
             
-            # Log generation request
+            # Log generation request with exact frontend model
             log_custom_event(
                 "text_generation_start",
-                f"Starting text generation with model: {model_name}",
+                f"Starting text generation with frontend-requested model: {frontend_model_name}",
                 {
-                    "model_name": model_name,
+                    "frontend_model_name": frontend_model_name,
+                    "model_path": model_path,
                     "question_length": len(question),
                     "llm_params": llm_params
                 }
             )
             
-            # Use async service method
+            # Use exactly the frontend-provided model name and path
             result = await self.llm_service.generate_response(
                 question=question,
-                model_name=model_name,
-                model_path=model_path,
+                model_name=frontend_model_name,  # Use exact frontend model name
+                model_path=model_path,  # Use exact path derived from frontend model name
                 template=template,
                 **llm_params
             )
             
             if result.get('success'):
+                # Enhance result with exact model information
+                result['model_used'] = frontend_model_name  # Return exactly what frontend requested
+                result['frontend_requested'] = True
+                result['exact_model_match'] = True
+                
                 # Log successful generation
                 log_custom_event(
                     "text_generation_success",
-                    f"Text generation completed successfully with model: {model_name}",
+                    f"Text generation completed successfully with frontend-requested model: {frontend_model_name}",
                     {
-                        "model_name": model_name,
+                        "frontend_model_name": frontend_model_name,
+                        "model_path": model_path,
                         "response_length": len(str(result.get('response', ''))),
                         "processing_time": result.get('processing_time'),
+                        "exact_model_used": True
                     }
                 )
                 return jsonify(result), 200
             else:
-                # Log generation failure
+                # Log generation failure with frontend model info
                 log_custom_event(
                     "text_generation_failure",
-                    f"Text generation failed with model: {model_name}",
+                    f"Text generation failed with frontend-requested model: {frontend_model_name}",
                     {
-                        "model_name": model_name,
-                        "error": result.get('error')
+                        "frontend_model_name": frontend_model_name,
+                        "model_path": model_path,
+                        "error": result.get('error'),
+                        "exact_model_requested": True
                     }
                 )
                 return jsonify(result), 500
@@ -253,18 +275,21 @@ class RouteHandlers:
         except Exception as e:
             log_custom_event(
                 "text_generation_error",
-                f"Text generation error: {str(e)}",
+                f"Text generation error with frontend-requested model: {str(e)}",
                 {
-                    "model_name": model_name if 'model_name' in locals() else 'unknown',
+                    "frontend_model_name": frontend_model_name if 'frontend_model_name' in locals() else 'unknown',
+                    "model_path": model_path if 'model_path' in locals() else 'unknown',
                     "question": question[:100] + "..." if 'question' in locals() and len(question) > 100 else question if 'question' in locals() else 'unknown',
                     "error_type": type(e).__name__,
-                    "error_message": str(e)
+                    "error_message": str(e),
+                    "exact_model_requested": True
                 }
             )
-            logger.error(f"Error generating response: {e}")
+            logger.error(f"Error generating response with frontend model '{frontend_model_name if 'frontend_model_name' in locals() else 'unknown'}': {e}")
             return jsonify({
                 "success": False,
-                "error": str(e)
+                "error": str(e),
+                "requested_model": frontend_model_name if 'frontend_model_name' in locals() else None
             }), 500
     
     def health_check(self):
@@ -346,6 +371,60 @@ class RouteHandlers:
                 "error": str(e)
             }), 500
     
+    @log_endpoint("performance_metrics")
+    def performance_metrics(self):
+        """Get performance metrics and optimization status."""
+        try:
+            # Get optimized service stats
+            service_stats = self.llm_service.get_service_stats()
+            
+            # Get system performance
+            import psutil
+            system_stats = {
+                "cpu_percent": psutil.cpu_percent(interval=0.1),
+                "memory_percent": psutil.virtual_memory().percent,
+                "memory_available_gb": round(psutil.virtual_memory().available / (1024**3), 2)
+            }
+            
+            # Check GPU availability
+            gpu_stats = {}
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    gpu_stats = {
+                        "gpu_available": True,
+                        "gpu_count": torch.cuda.device_count(),
+                        "gpu_memory_used": round(torch.cuda.memory_allocated() / (1024**3), 2),
+                        "gpu_memory_cached": round(torch.cuda.memory_reserved() / (1024**3), 2)
+                    }
+                else:
+                    gpu_stats = {"gpu_available": False}
+            except ImportError:
+                gpu_stats = {"gpu_available": False, "error": "PyTorch not available"}
+            
+            return jsonify({
+                "success": True,
+                "optimization_status": {
+                    "service_type": "OptimizedLLMService",
+                    "langchain_removed": True,
+                    "direct_inference": True,
+                    "memory_mapping_enabled": True,
+                    "model_pooling_enabled": True
+                },
+                "performance_metrics": service_stats.get('performance_metrics', {}),
+                "service_stats": service_stats,
+                "system_stats": system_stats,
+                "gpu_stats": gpu_stats,
+                "timestamp": time.time()
+            }), 200
+            
+        except Exception as e:
+            logger.error(f"Error getting performance metrics: {e}")
+            return jsonify({
+                "success": False,
+                "error": str(e)
+            }), 500
+
     @log_endpoint("get_concurrency_stats")
     def get_concurrency_stats(self):
         """Get concurrency manager statistics."""

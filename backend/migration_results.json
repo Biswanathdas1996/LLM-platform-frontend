@@ -1,0 +1,10 @@
+{
+  "optimized_service": {
+    "total_time": 16.213751792907715,
+    "requests": 4,
+    "avg_time": 4.053437948226929,
+    "tokens_per_second": 9.61638487191397,
+    "errors": 0
+  },
+  "total_test_time": 16.215389490127563
+}

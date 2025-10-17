@@ -25,7 +25,38 @@ export interface GenerateResponse {
   model_used: string;
   processing_time: number;
   token_count: number;
+  total_tokens?: number;
+  efficiency_score?: number;
+  pool_stats?: any;
   error?: string;
+}
+
+export interface PerformanceMetrics {
+  success: boolean;
+  optimization_status: {
+    service_type: string;
+    langchain_removed: boolean;
+    direct_inference: boolean;
+    memory_mapping_enabled: boolean;
+    model_pooling_enabled: boolean;
+  };
+  performance_metrics: {
+    avg_tokens_per_second: number;
+    success_rate: number;
+  };
+  service_stats: any;
+  system_stats: {
+    cpu_percent: number;
+    memory_percent: number;
+    memory_available_gb: number;
+  };
+  gpu_stats: {
+    gpu_available: boolean;
+    gpu_count?: number;
+    gpu_memory_used?: number;
+    gpu_memory_cached?: number;
+  };
+  timestamp: number;
 }
 
 export interface HealthResponse {
@@ -162,6 +193,10 @@ export class LocalLLMAPI {
 
   async getLogs(): Promise<ExternalLogsResponse> {
     return this.makeRequest<ExternalLogsResponse>('/api/v1/logs');
+  }
+
+  async getPerformanceMetrics(): Promise<PerformanceMetrics> {
+    return this.makeRequest<PerformanceMetrics>('/api/v1/performance');
   }
 }
 
