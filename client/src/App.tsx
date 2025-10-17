@@ -19,6 +19,7 @@ import Analytics from "@/pages/Analytics";
 import DeepSeekModels from "@/pages/DeepSeekModels";
 import DeepSeekGeneration from "@/pages/DeepSeekGeneration";
 import DeepSeekApiDocs from "@/pages/DeepSeekApiDocs";
+import BYOD from "@/pages/BYOD";
 import NotFound from "@/pages/not-found";
 
 function AppContent() {
@@ -44,6 +45,7 @@ function AppContent() {
               <Route path="/deepseek/models" component={DeepSeekModels} />
               <Route path="/deepseek/generation" component={DeepSeekGeneration} />
               <Route path="/deepseek/api-docs" component={DeepSeekApiDocs} />
+              <Route path="/byod" component={BYOD} />
               <Route component={NotFound} />
             </Switch>
           </div>

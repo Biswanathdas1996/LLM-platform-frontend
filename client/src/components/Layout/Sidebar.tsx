@@ -15,7 +15,8 @@ import {
   Activity,
   Sparkles,
   Cpu,
-  FileCode
+  FileCode,
+  Database
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Models', href: '/models', icon: Box },
   { name: 'Playground', href: '/playground', icon: PlayCircle },
+  { name: 'BYOD', href: '/byod', icon: Database },
   { name: 'External APIs', href: '/external-apis', icon: Plug },
   { name: 'Cache Status', href: '/cache', icon: HardDrive },
   { name: 'API Docs', href: '/api-docs', icon: BookOpen },

@@ -53,3 +53,42 @@ export type ExternalApi = typeof externalApis.$inferSelect;
 export type InsertExternalApi = z.infer<typeof insertExternalApiSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
+export interface RAGIndex {
+  name: string;
+  created_at: string;
+  stats: {
+    total_documents: number;
+    total_chunks: number;
+    total_size: number;
+  };
+}
+
+export interface RAGDocument {
+  filename: string;
+  document_id: string;
+  chunks: number;
+  size: number;
+}
+
+export interface RAGQueryResult {
+  results: Array<{
+    text: string;
+    score: number;
+    metadata: Record<string, any>;
+  }>;
+  query: string;
+  mode: 'vector' | 'keyword' | 'hybrid';
+  total_results: number;
+}
+
+export interface RAGUploadResponse {
+  success: boolean;
+  processed: RAGDocument[];
+  errors: Array<{
+    filename: string;
+    error: string;
+  }>;
+  total_processed: number;
+  total_errors: number;
+}
