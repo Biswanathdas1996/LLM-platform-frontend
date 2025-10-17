@@ -222,8 +222,8 @@ export class RAGStorage {
         case '.pdf':
           // Dynamic import for pdf-parse
           const pdfParseModule = await import('pdf-parse');
-          const pdfParse = pdfParseModule.default || pdfParseModule;
-          const pdfData = await pdfParse(buffer);
+          const pdfParse = (pdfParseModule as any).default || pdfParseModule;
+          const pdfData = await (pdfParse as any)(buffer);
           return pdfData.text;
         
         case '.docx':
