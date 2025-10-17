@@ -12,6 +12,7 @@ from services.optimized_llm_service import OptimizedLLMService
 from services.concurrency_manager import ConcurrencyManager
 from DeepSeekLLM.deepseek_routes import create_deepseek_routes
 from api.routes import create_api_blueprint
+from api.rag_routes import create_rag_blueprint
 from utils.logger import APILogger
 
 def setup_logging(app):
@@ -103,7 +104,9 @@ def create_app(config_name=None):
     api_blueprint = create_api_blueprint(app_config, model_manager, llm_service)
     app.register_blueprint(api_blueprint)
     
-    
+    # Register RAG blueprint
+    rag_blueprint = create_rag_blueprint(app_config)
+    app.register_blueprint(rag_blueprint)
     
     # Register DeepSeek blueprint
     deepseek_blueprint = create_deepseek_routes(app_config)
