@@ -84,13 +84,20 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
 
             // Enhance the prompt with RAG context
             finalPrompt = `You are a helpful assistant. Answer the user's question based on the following context from the documents. If the context doesn't contain relevant information, you can use your general knowledge but mention that.
+                          
+                          User's question: ${inputMessage}
 
-Context from documents:
-${context}
+                          Context from documents:
+                          ${context}
 
-User's question: ${inputMessage}
+                          Remember to:
+                          1. Only answer based on the provided context when possible
+                          2. If you're unsure or the context doesn't contain the answer, clearly state that
+                          3. Don't make up information that isn't in the context
+                          4. Cite which document number [1], [2], etc. you're using when answering
+                          5. Be concise and accurate
 
-Please provide a helpful answer:`;
+                          Please provide a helpful answer:`;
           }
         } catch (ragError) {
           console.warn('RAG query failed, proceeding without context:', ragError);
