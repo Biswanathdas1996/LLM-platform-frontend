@@ -70,37 +70,29 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
           const ragResponse = await ragQueryMutation.mutateAsync({
             index_names: selectedIndexes,
             query: inputMessage,
-            k: 5,
+            k: 3,  // Reduced from 5 for faster responses
             mode: 'hybrid',
           });
 
           if (ragResponse.success && ragResponse.results.length > 0) {
-            // Build context from RAG results
+            // Build optimized context from RAG results
             const context = ragResponse.results
+              .slice(0, 3)  // Limit to top 3 results
               .map((result, idx) => 
-                `[${idx + 1}] From "${result.document_name}" (relevance: ${(result.score * 100).toFixed(1)}%):\n${result.text}`
+                `[${idx + 1}] ${result.document_name}: ${result.text.substring(0, 300)}${result.text.length > 300 ? '...' : ''}`  // Truncate to 300 chars
               )
               .join('\n\n');
 
-            // Enhance the prompt with RAG context
-            finalPrompt = `You are a helpful assistant. Answer the user's question based on the following context from the documents. If the context doesn't contain relevant information, you can use your general knowledge but mention that.
-                          
-                          User's question: ${inputMessage}
-
-                          Context from documents:
-                          ${context}
-
-                          Remember to:
-                          1. Only answer based on the provided context when possible
-                          2. If you're unsure or the context doesn't contain the answer, clearly state that
-                          3. Don't make up information that isn't in the context
-                          4. Cite which document number [1], [2], etc. you're using when answering
-                          5. Be concise and accurate
-
-                          Please provide a helpful answer:`;
+            // Compact prompt with RAG context
+            finalPrompt = `Context from documents:\n${context}\n\nQuestion: ${inputMessage}\n\nAnswer based on the context above. Be concise and cite sources [1], [2], [3]:`;
           }
         } catch (ragError) {
           console.warn('RAG query failed, proceeding without context:', ragError);
+          addNotification({
+            type: 'warning',
+            title: 'RAG Context Unavailable',
+            message: 'Proceeding without document context. Check RAG service.',
+          });
           // Continue without RAG context if it fails
         }
       }

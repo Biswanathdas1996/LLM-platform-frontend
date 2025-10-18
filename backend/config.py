@@ -65,6 +65,17 @@ class Config:
     ENABLE_MEMORY_MAPPING = os.environ.get('ENABLE_MEMORY_MAPPING', 'True').lower() == 'true'
     ENABLE_MEMORY_LOCK = os.environ.get('ENABLE_MEMORY_LOCK', 'True').lower() == 'true'
     OPTIMIZATION_LEVEL = os.environ.get('OPTIMIZATION_LEVEL', 'high')  # low, medium, high
+    
+    # RAG Performance settings
+    RAG_CHUNK_SIZE = int(os.environ.get('RAG_CHUNK_SIZE', 150))  # Reduced from 256 for faster retrieval
+    RAG_CHUNK_OVERLAP = int(os.environ.get('RAG_CHUNK_OVERLAP', 30))  # Reduced from 50
+    RAG_DEFAULT_K = int(os.environ.get('RAG_DEFAULT_K', 3))  # Reduced from 5 for faster responses
+    RAG_MAX_K = int(os.environ.get('RAG_MAX_K', 10))  # Maximum number of results to retrieve
+    RAG_QUERY_TIMEOUT = int(os.environ.get('RAG_QUERY_TIMEOUT', 5))  # Timeout in seconds for RAG queries
+    RAG_MAX_CONTEXT_LENGTH = int(os.environ.get('RAG_MAX_CONTEXT_LENGTH', 2000))  # Max context chars to include
+    RAG_ENABLE_CACHING = os.environ.get('RAG_ENABLE_CACHING', 'True').lower() == 'true'
+    RAG_CACHE_SIZE = int(os.environ.get('RAG_CACHE_SIZE', 100))  # Number of queries to cache
+    RAG_MIN_RELEVANCE_SCORE = float(os.environ.get('RAG_MIN_RELEVANCE_SCORE', 0.3))  # Filter low relevance results
 
 class DevelopmentConfig(Config):
     """Development configuration."""

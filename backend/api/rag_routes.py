@@ -14,8 +14,8 @@ def create_rag_blueprint(config) -> Blueprint:
     
     rag = Blueprint('rag', __name__, url_prefix='/api/rag')
     
-    # Initialize RAG service
-    rag_service = RAGService(storage_path=config.UPLOAD_FOLDER + '/rag_storage')
+    # Initialize RAG service with config
+    rag_service = RAGService(storage_path=config.UPLOAD_FOLDER + '/rag_storage', config=config)
     
     # Allowed file extensions
     ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx', 'md', 'html', 'htm', 'csv', 'json'}

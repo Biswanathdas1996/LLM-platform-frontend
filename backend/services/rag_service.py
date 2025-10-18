@@ -12,6 +12,8 @@ import pickle
 import re
 from collections import Counter
 import math
+from functools import lru_cache
+import time
 
 # Document processing with Docling
 from docling.document_converter import DocumentConverter
@@ -210,14 +212,20 @@ class SimpleEmbedder:
 
 
 class VectorStore:
-    """Simple in-memory vector store with hybrid search"""
+    """Simple in-memory vector store with hybrid search and caching"""
     
-    def __init__(self, embedding_dim: int = 768):
+    def __init__(self, embedding_dim: int = 768, enable_cache: bool = True, cache_size: int = 100):
         self.embedding_dim = embedding_dim
         self.vectors = []
         self.metadata = []
         self.text_index = {}  # For keyword search
         self.embedder = SimpleEmbedder()
+        
+        # Performance optimizations
+        self.enable_cache = enable_cache
+        self.cache_size = cache_size
+        self._query_cache = {}  # Cache for query results
+        self._last_query_time = {}  # Track query times for timeout
         
     def add_documents(self, texts: List[str], metadatas: List[Dict[str, Any]] = None):
         """Add documents to the vector store"""
@@ -246,29 +254,78 @@ class VectorStore:
                 if word not in self.text_index:
                     self.text_index[word] = []
                 self.text_index[word].append(doc_id)
+        
+        # Clear cache when new documents are added
+        self._query_cache.clear()
     
-    def search(self, query: str, k: int = 5, mode: str = 'hybrid') -> List[Tuple[Dict, float]]:
+    def search(self, query: str, k: int = 5, mode: str = 'hybrid', min_score: float = 0.0, timeout: float = None) -> List[Tuple[Dict, float]]:
         """
-        Search for similar documents
+        Search for similar documents with caching and timeout
         mode: 'vector', 'keyword', or 'hybrid'
+        min_score: Minimum relevance score to include in results
+        timeout: Maximum time in seconds for search operation
         """
-        if mode == 'vector':
-            return self._vector_search(query, k)
-        elif mode == 'keyword':
-            return self._keyword_search(query, k)
-        else:  # hybrid
-            return self._hybrid_search(query, k)
+        start_time = time.time()
+        
+        # Check cache
+        cache_key = f"{query}_{k}_{mode}_{min_score}"
+        if self.enable_cache and cache_key in self._query_cache:
+            logger.debug(f"Cache hit for query: {query[:50]}...")
+            return self._query_cache[cache_key]
+        
+        # Perform search based on mode
+        try:
+            if mode == 'vector':
+                results = self._vector_search(query, k, timeout)
+            elif mode == 'keyword':
+                results = self._keyword_search(query, k, timeout)
+            else:  # hybrid
+                results = self._hybrid_search(query, k, timeout)
+            
+            # Filter by minimum score
+            if min_score > 0:
+                results = [(metadata, score) for metadata, score in results if score >= min_score]
+            
+            # Cache results (with size limit)
+            if self.enable_cache:
+                if len(self._query_cache) >= self.cache_size:
+                    # Remove oldest entry (simple FIFO)
+                    oldest_key = next(iter(self._query_cache))
+                    del self._query_cache[oldest_key]
+                self._query_cache[cache_key] = results
+            
+            query_time = time.time() - start_time
+            logger.debug(f"RAG search completed in {query_time:.3f}s, found {len(results)} results")
+            
+            return results
+            
+        except TimeoutError as e:
+            logger.error(f"RAG search timeout after {timeout}s: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"RAG search error: {e}")
+            return []
     
-    def _vector_search(self, query: str, k: int) -> List[Tuple[Dict, float]]:
-        """Vector similarity search"""
+    def _check_timeout(self, start_time: float, timeout: float):
+        """Check if operation has exceeded timeout"""
+        if timeout and (time.time() - start_time) > timeout:
+            raise TimeoutError(f"Operation exceeded timeout of {timeout}s")
+    
+    def _vector_search(self, query: str, k: int, timeout: float = None) -> List[Tuple[Dict, float]]:
+        """Vector similarity search with timeout protection"""
+        start_time = time.time()
+        
         if not self.vectors:
             return []
         
         query_embedding = self.embedder.embed(query)
+        self._check_timeout(start_time, timeout)
         
         # Calculate cosine similarities
         similarities = []
         for i, vec in enumerate(self.vectors):
+            if i % 100 == 0:  # Check timeout periodically
+                self._check_timeout(start_time, timeout)
             similarity = np.dot(query_embedding, vec)
             similarities.append((i, similarity))
         
@@ -282,9 +339,12 @@ class VectorStore:
         
         return results
     
-    def _keyword_search(self, query: str, k: int) -> List[Tuple[Dict, float]]:
-        """Keyword-based search with enhanced keyword matching"""
+    def _keyword_search(self, query: str, k: int, timeout: float = None) -> List[Tuple[Dict, float]]:
+        """Keyword-based search with enhanced keyword matching and timeout"""
+        start_time = time.time()
+        
         query_words = set(self.embedder._tokenize(query))
+        self._check_timeout(start_time, timeout)
         
         # Score documents based on keyword matches
         doc_scores = Counter()
@@ -292,6 +352,8 @@ class VectorStore:
             if word in self.text_index:
                 for doc_id in self.text_index[word]:
                     doc_scores[doc_id] += 1
+        
+        self._check_timeout(start_time, timeout)
         
         # Boost scores for documents with matching metadata keywords
         for doc_id, metadata in enumerate(self.metadata):
@@ -314,31 +376,38 @@ class VectorStore:
         
         return results
     
-    def _hybrid_search(self, query: str, k: int) -> List[Tuple[Dict, float]]:
-        """Combine vector and keyword search"""
-        # Get results from both methods
-        vector_results = self._vector_search(query, k * 2)
-        keyword_results = self._keyword_search(query, k * 2)
+    def _hybrid_search(self, query: str, k: int, timeout: float = None) -> List[Tuple[Dict, float]]:
+        """Combine vector and keyword search with timeout"""
+        start_time = time.time()
+        
+        # Get results from both methods (get more to ensure good final results)
+        remaining_time = timeout - (time.time() - start_time) if timeout else None
+        vector_results = self._vector_search(query, k * 2, remaining_time)
+        
+        self._check_timeout(start_time, timeout)
+        
+        remaining_time = timeout - (time.time() - start_time) if timeout else None
+        keyword_results = self._keyword_search(query, k * 2, remaining_time)
         
         # Combine scores
         combined_scores = {}
         
-        # Add vector search results
+        # Add vector search results (70% weight)
         for metadata, score in vector_results:
             doc_id = metadata['doc_id']
             combined_scores[doc_id] = {
                 'metadata': metadata,
                 'vector_score': score,
                 'keyword_score': 0,
-                'combined_score': score * 0.7  # Weight for vector search
+                'combined_score': score * 0.7
             }
         
-        # Add keyword search results
+        # Add keyword search results (30% weight)
         for metadata, score in keyword_results:
             doc_id = metadata['doc_id']
             if doc_id in combined_scores:
                 combined_scores[doc_id]['keyword_score'] = score
-                combined_scores[doc_id]['combined_score'] += score * 0.3  # Weight for keyword search
+                combined_scores[doc_id]['combined_score'] += score * 0.3
             else:
                 combined_scores[doc_id] = {
                     'metadata': metadata,
@@ -496,10 +565,34 @@ class DocumentProcessor:
 class RAGService:
     """Main RAG service for document management and retrieval"""
     
-    def __init__(self, storage_path: str = 'rag_storage'):
+    def __init__(self, storage_path: str = 'rag_storage', config=None):
         self.storage_path = storage_path
         self.indexes = {}  # Multiple indexes for different document collections
         self.chunker = TextChunker()
+        
+        # Load configuration
+        self.config = config
+        if config:
+            self.chunk_size = getattr(config, 'RAG_CHUNK_SIZE', 150)
+            self.chunk_overlap = getattr(config, 'RAG_CHUNK_OVERLAP', 30)
+            self.default_k = getattr(config, 'RAG_DEFAULT_K', 3)
+            self.max_k = getattr(config, 'RAG_MAX_K', 10)
+            self.query_timeout = getattr(config, 'RAG_QUERY_TIMEOUT', 5)
+            self.max_context_length = getattr(config, 'RAG_MAX_CONTEXT_LENGTH', 2000)
+            self.enable_caching = getattr(config, 'RAG_ENABLE_CACHING', True)
+            self.cache_size = getattr(config, 'RAG_CACHE_SIZE', 100)
+            self.min_relevance_score = getattr(config, 'RAG_MIN_RELEVANCE_SCORE', 0.3)
+        else:
+            # Default values
+            self.chunk_size = 150
+            self.chunk_overlap = 30
+            self.default_k = 3
+            self.max_k = 10
+            self.query_timeout = 5
+            self.max_context_length = 2000
+            self.enable_caching = True
+            self.cache_size = 100
+            self.min_relevance_score = 0.3
         
         # Initialize DocumentProcessor with Docling
         logger.info("Initializing document processor with Docling...")
@@ -513,6 +606,8 @@ class RAGService:
         
         # Load existing indexes
         self._load_indexes()
+        
+        logger.info(f"RAG Service initialized with chunk_size={self.chunk_size}, default_k={self.default_k}, timeout={self.query_timeout}s")
     
     def create_index(self, index_name: str) -> Dict[str, Any]:
         """Create a new document index"""
@@ -520,7 +615,10 @@ class RAGService:
             return {'error': f'Index {index_name} already exists'}
         
         self.indexes[index_name] = {
-            'vector_store': VectorStore(),
+            'vector_store': VectorStore(
+                enable_cache=self.enable_caching,
+                cache_size=self.cache_size
+            ),
             'documents': [],
             'created_at': datetime.now().isoformat(),
             'stats': {
@@ -544,8 +642,8 @@ class RAGService:
             # Generate document ID
             doc_id = hashlib.md5(f"{filename}_{datetime.now().isoformat()}".encode()).hexdigest()
             
-            # Chunk the text
-            chunks = self.chunker.chunk_text(text)
+            # Chunk the text with optimized settings
+            chunks = self.chunker.chunk_text(text, chunk_size=self.chunk_size, overlap=self.chunk_overlap)
             
             # Prepare chunks for vector store
             chunk_texts = []
@@ -586,6 +684,8 @@ class RAGService:
             # Save index
             self._save_index(index_name)
             
+            logger.info(f"Document '{filename}' uploaded to index '{index_name}': {len(chunks)} chunks created")
+            
             return {
                 'success': True,
                 'document_id': doc_id,
@@ -597,13 +697,22 @@ class RAGService:
             logger.error(f"Error uploading document: {e}")
             return {'error': str(e)}
     
-    def query(self, index_name: str, query: str, k: int = 5, mode: str = 'hybrid') -> Dict[str, Any]:
+    def query(self, index_name: str, query: str, k: int = None, mode: str = 'hybrid') -> Dict[str, Any]:
         """
         Query documents in a specific index only
         Ensures results are strictly from the specified index
         """
         if index_name not in self.indexes:
             return {'error': f'Index {index_name} not found'}
+        
+        # Use configured default k if not specified
+        if k is None:
+            k = self.default_k
+        
+        # Cap k at max_k
+        k = min(k, self.max_k)
+        
+        start_time = time.time()
         
         try:
             # Get vector store for THIS index only
@@ -619,14 +728,21 @@ class RAGService:
                     'message': f'No documents in index {index_name}'
                 }
             
-            # Search only within this index's vector store
-            results = vector_store.search(query, k=k, mode=mode)
+            # Search only within this index's vector store with timeout and min_score filter
+            results = vector_store.search(
+                query, 
+                k=k, 
+                mode=mode,
+                min_score=self.min_relevance_score,
+                timeout=self.query_timeout
+            )
             
             # Format results and add index verification
             formatted_results = []
+            total_context_length = 0
+            
             for metadata, score in results:
                 # Double-check that this result belongs to the current index
-                # by verifying document_id exists in this index's documents
                 doc_id = metadata.get('document_id')
                 index_data = self.indexes[index_name]
                 
@@ -634,8 +750,18 @@ class RAGService:
                 doc_exists = any(doc['id'] == doc_id for doc in index_data['documents'])
                 
                 if doc_exists:
+                    # Truncate text if needed to fit in context limit
+                    text = metadata['text']
+                    if total_context_length + len(text) > self.max_context_length:
+                        remaining = self.max_context_length - total_context_length
+                        text = text[:remaining] + "..."
+                        if remaining <= 0:
+                            break  # Skip remaining results if context is full
+                    
+                    total_context_length += len(text)
+                    
                     formatted_results.append({
-                        'text': metadata['text'],
+                        'text': text,
                         'score': float(score),
                         'document_name': metadata.get('document_name', 'Unknown'),
                         'chunk_id': metadata.get('chunk_id', 0),
@@ -647,23 +773,37 @@ class RAGService:
                 else:
                     logger.warning(f"Result with doc_id {doc_id} doesn't belong to index {index_name}")
             
+            query_time = time.time() - start_time
+            
+            logger.info(f"RAG query completed in {query_time:.3f}s: {len(formatted_results)} results (min_score={self.min_relevance_score})")
+            
             return {
                 'success': True,
                 'query': query,
                 'index_name': index_name,  # Include index name in response
                 'results': formatted_results,
                 'mode': mode,
-                'total_results': len(formatted_results)
+                'total_results': len(formatted_results),
+                'query_time': query_time,
+                'context_length': total_context_length
             }
             
         except Exception as e:
             logger.error(f"Error querying index {index_name}: {e}")
             return {'error': str(e), 'index_name': index_name}
     
-    def query_multiple_indexes(self, index_names: List[str], query: str, k: int = 5, mode: str = 'hybrid') -> Dict[str, Any]:
+    def query_multiple_indexes(self, index_names: List[str], query: str, k: int = None, mode: str = 'hybrid') -> Dict[str, Any]:
         """
         Query multiple indexes and merge results by relevance score
         """
+        # Use configured default k if not specified
+        if k is None:
+            k = self.default_k
+        
+        # Cap k at max_k
+        k = min(k, self.max_k)
+        
+        start_time = time.time()
         all_results = []
         errors = []
         
@@ -684,8 +824,30 @@ class RAGService:
         # Sort all results by score (descending)
         all_results.sort(key=lambda x: x['score'], reverse=True)
         
-        # Take top k results
-        top_results = all_results[:k]
+        # Take top k results and limit by context length
+        top_results = []
+        total_context_length = 0
+        
+        for result in all_results:
+            if len(top_results) >= k:
+                break
+                
+            text_length = len(result['text'])
+            if total_context_length + text_length > self.max_context_length:
+                # Try to fit partial result
+                remaining = self.max_context_length - total_context_length
+                if remaining > 100:  # Only include if meaningful amount remains
+                    result['text'] = result['text'][:remaining] + "..."
+                    total_context_length += remaining
+                    top_results.append(result)
+                break
+            
+            total_context_length += text_length
+            top_results.append(result)
+        
+        query_time = time.time() - start_time
+        
+        logger.info(f"Multi-index RAG query completed in {query_time:.3f}s: {len(top_results)} results from {len(index_names)} indexes")
         
         return {
             'success': True,
@@ -695,6 +857,8 @@ class RAGService:
             'mode': mode,
             'total_results': len(top_results),
             'queried_indexes': len([name for name in index_names if name in self.indexes]),
+            'query_time': query_time,
+            'context_length': total_context_length,
             'errors': errors if errors else None
         }
     
