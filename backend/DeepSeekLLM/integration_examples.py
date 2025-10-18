@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional, List
 import time
 
 # Configuration
-API_BASE_URL = "http://localhost:5000/api/deepseek"
+API_BASE_URL = "http://localhost:5001/api/deepseek"
 DEFAULT_MODEL = "DeepSeek-R1-q2_k.gguf"
 
 class DeepSeekClient:
@@ -442,7 +442,7 @@ if __name__ == "__main__":
     
     if not health.get("success"):
         print(f"❌ DeepSeek service is not available: {health.get('error')}")
-        print("Please make sure the API server is running on http://localhost:5000")
+        print("Please make sure the API server is running on http://localhost:5001")
         exit(1)
     
     print(f"✅ DeepSeek service is {health.get('status')}")

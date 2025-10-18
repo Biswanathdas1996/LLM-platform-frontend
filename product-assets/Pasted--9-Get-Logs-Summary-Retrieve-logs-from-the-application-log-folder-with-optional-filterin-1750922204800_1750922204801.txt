@@ -13,16 +13,16 @@
 
 ```bash
 # Get all logs
-curl -X GET "http://127.0.0.1:5000/api/v1/logs"
+curl -X GET "http://127.0.0.1:5001/api/v1/logs"
 
 # Get only API logs, last 100 lines
-curl -X GET "http://127.0.0.1:5000/api/v1/logs?type=api&lines=100"
+curl -X GET "http://127.0.0.1:5001/api/v1/logs?type=api&lines=100"
 
 # Get error logs from the last 24 hours
-curl -X GET "http://127.0.0.1:5000/api/v1/logs?type=error&hours=24"
+curl -X GET "http://127.0.0.1:5001/api/v1/logs?type=error&hours=24"
 
 # Get logs from the last 2 hours with 50 lines limit
-curl -X GET "http://127.0.0.1:5000/api/v1/logs?type=all&lines=50&hours=2"
+curl -X GET "http://127.0.0.1:5001/api/v1/logs?type=all&lines=50&hours=2"
 ```
 
 **Expected Response:**

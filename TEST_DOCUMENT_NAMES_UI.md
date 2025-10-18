@@ -75,7 +75,7 @@ The index card should show:
 
 **If documents don't appear:**
 1. Check browser console for errors
-2. Verify backend API is running on port 5000
+2. Verify backend API is running on port 5001
 3. Check network tab - API response should include `documents` array
 4. Try refreshing the page
 
@@ -89,17 +89,17 @@ The index card should show:
 You can also test the API directly:
 ```bash
 # Create index
-curl -X POST http://localhost:5000/api/rag/indexes \
+curl -X POST http://localhost:5001/api/rag/indexes \
   -H "Content-Type: application/json" \
   -d '{"index_name": "test_api"}'
 
 # Upload a document
-curl -X POST http://localhost:5000/api/rag/upload \
+curl -X POST http://localhost:5001/api/rag/upload \
   -F "index_name=test_api" \
   -F "files=@patient_records.txt"
 
 # List indexes (should show documents)
-curl http://localhost:5000/api/rag/indexes
+curl http://localhost:5001/api/rag/indexes
 ```
 
 The last command should return:

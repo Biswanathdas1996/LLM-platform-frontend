@@ -21,7 +21,7 @@ The Live Logs feature provides real-time monitoring of your Local LLM applicatio
 
 **Usage**:
 ```bash
-curl http://localhost:5000/api/v1/logs
+curl http://localhost:5001/api/v1/logs
 ```
 
 **Response**: HTML page with the live logs interface
@@ -33,12 +33,12 @@ curl http://localhost:5000/api/v1/logs
 
 **Usage**:
 ```bash
-curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream
+curl -N -H "Accept: text/event-stream" http://localhost:5001/api/v1/logs/stream
 ```
 
 **Response Format**: SSE stream with JSON data
 ```
-data: {"timestamp": "2025-06-26T10:30:45.123456", "level": "INFO", "message": "Incoming request", "type": "request", "method": "GET", "url": "http://localhost:5000/api/v1/models"}
+data: {"timestamp": "2025-06-26T10:30:45.123456", "level": "INFO", "message": "Incoming request", "type": "request", "method": "GET", "url": "http://localhost:5001/api/v1/models"}
 
 data: {"timestamp": "2025-06-26T10:30:45.234567", "level": "INFO", "message": "Outgoing response", "type": "response", "status_code": 200, "duration_ms": 45.67}
 ```
@@ -55,10 +55,10 @@ data: {"timestamp": "2025-06-26T10:30:45.234567", "level": "INFO", "message": "O
 **Usage**:
 ```bash
 # Get last 50 logs
-curl "http://localhost:5000/api/v1/logs/recent?lines=50"
+curl "http://localhost:5001/api/v1/logs/recent?lines=50"
 
 # Get only error logs
-curl "http://localhost:5000/api/v1/logs/recent?type=errors&lines=25"
+curl "http://localhost:5001/api/v1/logs/recent?type=errors&lines=25"
 ```
 
 **Sample Response**:
@@ -72,7 +72,7 @@ curl "http://localhost:5000/api/v1/logs/recent?type=errors&lines=25"
     "type": "request",
     "request_id": "req_1719396645123456",
     "method": "GET",
-    "url": "http://localhost:5000/api/v1/models",
+    "url": "http://localhost:5001/api/v1/models",
     "endpoint": "list_models",
     "remote_addr": "127.0.0.1",
     "user_agent": "curl/7.68.0",
@@ -88,7 +88,7 @@ curl "http://localhost:5000/api/v1/logs/recent?type=errors&lines=25"
     "type": "response",
     "request_id": "req_1719396645123456",
     "method": "GET",
-    "url": "http://localhost:5000/api/v1/models",
+    "url": "http://localhost:5001/api/v1/models",
     "endpoint": "list_models",
     "status_code": 200,
     "content_type": "application/json",
@@ -103,7 +103,7 @@ curl "http://localhost:5000/api/v1/logs/recent?type=errors&lines=25"
     "type": "response",
     "request_id": "req_1719396675987654",
     "method": "GET",
-    "url": "http://localhost:5000/api/v1/models/nonexistent.gguf",
+    "url": "http://localhost:5001/api/v1/models/nonexistent.gguf",
     "endpoint": "delete_model",
     "status_code": 404,
     "content_type": "application/json",
@@ -124,10 +124,10 @@ curl "http://localhost:5000/api/v1/logs/recent?type=errors&lines=25"
 **Usage**:
 ```bash
 # Get stats for last 24 hours
-curl "http://localhost:5000/api/v1/logs/stats"
+curl "http://localhost:5001/api/v1/logs/stats"
 
 # Get stats for last 6 hours
-curl "http://localhost:5000/api/v1/logs/stats?hours=6"
+curl "http://localhost:5001/api/v1/logs/stats?hours=6"
 ```
 
 **Sample Response**:
@@ -183,7 +183,7 @@ python main.py
 
 2. Open your web browser and navigate to:
 ```
-http://localhost:5000/api/v1/logs
+http://localhost:5001/api/v1/logs
 ```
 
 ### Step 2: Using the Interface
@@ -221,14 +221,14 @@ import requests
 import json
 
 # Get recent logs
-response = requests.get('http://localhost:5000/api/v1/logs/recent?lines=10')
+response = requests.get('http://localhost:5001/api/v1/logs/recent?lines=10')
 recent_logs = response.json()
 
 for log in recent_logs:
     print(f"[{log['timestamp']}] {log['level']}: {log['message']}")
 
 # Get statistics
-stats_response = requests.get('http://localhost:5000/api/v1/logs/stats')
+stats_response = requests.get('http://localhost:5001/api/v1/logs/stats')
 stats = stats_response.json()
 
 print(f"Total requests in last 24h: {stats['api_stats']['total_requests']}")
@@ -238,16 +238,16 @@ print(f"Total errors in last 24h: {stats['error_summary']['total_errors']}")
 #### cURL Examples:
 ```bash
 # Stream logs (will keep connection open)
-curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream
+curl -N -H "Accept: text/event-stream" http://localhost:5001/api/v1/logs/stream
 
 # Get last 20 logs
-curl "http://localhost:5000/api/v1/logs/recent?lines=20" | jq '.'
+curl "http://localhost:5001/api/v1/logs/recent?lines=20" | jq '.'
 
 # Get error stats for last 6 hours
-curl "http://localhost:5000/api/v1/logs/stats?hours=6" | jq '.error_summary'
+curl "http://localhost:5001/api/v1/logs/stats?hours=6" | jq '.error_summary'
 
 # Monitor for errors in real-time
-curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream | \
+curl -N -H "Accept: text/event-stream" http://localhost:5001/api/v1/logs/stream | \
   grep '"level":"ERROR"'
 ```
 
@@ -263,7 +263,7 @@ curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream 
   "type": "request",
   "request_id": "req_1719396645123456",
   "method": "POST",
-  "url": "http://localhost:5000/api/v1/generate",
+  "url": "http://localhost:5001/api/v1/generate",
   "endpoint": "generate_response",
   "remote_addr": "127.0.0.1",
   "user_agent": "curl/7.68.0",
@@ -287,7 +287,7 @@ curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream 
   "type": "response",
   "request_id": "req_1719396645123456",
   "method": "POST",
-  "url": "http://localhost:5000/api/v1/generate",
+  "url": "http://localhost:5001/api/v1/generate",
   "endpoint": "generate_response",
   "status_code": 200,
   "content_type": "application/json",
@@ -312,7 +312,7 @@ curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream 
   "type": "response",
   "request_id": "req_1719396675987654",
   "method": "GET",
-  "url": "http://localhost:5000/api/v1/models/nonexistent.gguf",
+  "url": "http://localhost:5001/api/v1/models/nonexistent.gguf",
   "endpoint": "delete_model",
   "status_code": 404,
   "content_type": "application/json",
@@ -397,7 +397,7 @@ LOG_API_CALLS = True                  # Enable API call logging
 #!/bin/bash
 # Monitor for errors and send alerts
 
-curl -N -H "Accept: text/event-stream" http://localhost:5000/api/v1/logs/stream | \
+curl -N -H "Accept: text/event-stream" http://localhost:5001/api/v1/logs/stream | \
 while IFS= read -r line; do
   if echo "$line" | grep -q '"level":"ERROR"'; then
     echo "$(date): ERROR detected: $line"
@@ -413,7 +413,7 @@ import json
 from collections import Counter
 
 # Analyze API usage patterns
-response = requests.get('http://localhost:5000/api/v1/logs/recent?lines=1000&type=api')
+response = requests.get('http://localhost:5001/api/v1/logs/recent?lines=1000&type=api')
 logs = response.json()
 
 # Count requests by endpoint

@@ -7,7 +7,7 @@ This document provides comprehensive documentation for integrating with the Hugg
 ## Base URL
 
 ```
-http://localhost:5000/api/huggingface
+http://localhost:5001/api/huggingface
 ```
 
 ## Authentication
@@ -37,7 +37,7 @@ Lists all registered HuggingFace models.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:5000/api/huggingface/models?type=text-generation"
+curl -X GET "http://localhost:5001/api/huggingface/models?type=text-generation"
 ```
 
 **Example Response:**
@@ -102,7 +102,7 @@ Adds a new HuggingFace model to the registry.
 **Example Request:**
 
 ```bash
-curl -X POST "http://localhost:5000/api/huggingface/models" \
+curl -X POST "http://localhost:5001/api/huggingface/models" \
   -H "Content-Type: application/json" \
   -d '{
     "model_id": "gpt2",
@@ -145,7 +145,7 @@ Retrieves information about a specific model.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:5000/api/huggingface/models/gpt2"
+curl -X GET "http://localhost:5001/api/huggingface/models/gpt2"
 ```
 
 **Example Response:**
@@ -202,7 +202,7 @@ Updates model information (excluding protected fields).
 **Example Request:**
 
 ```bash
-curl -X PUT "http://localhost:5000/api/huggingface/models/gpt2" \
+curl -X PUT "http://localhost:5001/api/huggingface/models/gpt2" \
   -H "Content-Type: application/json" \
   -d '{
     "description": "Updated OpenAI GPT-2 language model",
@@ -226,7 +226,7 @@ Removes a model from the registry.
 **Example Request:**
 
 ```bash
-curl -X DELETE "http://localhost:5000/api/huggingface/models/gpt2"
+curl -X DELETE "http://localhost:5001/api/huggingface/models/gpt2"
 ```
 
 **Example Response:**
@@ -264,7 +264,7 @@ Loads a model into memory for faster inference.
 **Example Request:**
 
 ```bash
-curl -X POST "http://localhost:5000/api/huggingface/models/gpt2/load" \
+curl -X POST "http://localhost:5001/api/huggingface/models/gpt2/load" \
   -H "Content-Type: application/json" \
   -d '{"force_reload": true}'
 ```
@@ -326,7 +326,7 @@ Generates text using a HuggingFace model.
 **Example Request:**
 
 ```bash
-curl -X POST "http://localhost:5000/api/huggingface/generate" \
+curl -X POST "http://localhost:5001/api/huggingface/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "model_id": "gpt2",
@@ -397,7 +397,7 @@ Generates content using HuggingFace pipelines for specific tasks.
 **Example Request:**
 
 ```bash
-curl -X POST "http://localhost:5000/api/huggingface/pipeline" \
+curl -X POST "http://localhost:5001/api/huggingface/pipeline" \
   -H "Content-Type: application/json" \
   -d '{
     "model_id": "gpt2",
@@ -442,7 +442,7 @@ Retrieves information about cached models.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:5000/api/huggingface/cache"
+curl -X GET "http://localhost:5001/api/huggingface/cache"
 ```
 
 **Example Response:**
@@ -476,10 +476,10 @@ Clears model cache to free memory.
 
 ```bash
 # Clear all cache
-curl -X DELETE "http://localhost:5000/api/huggingface/cache"
+curl -X DELETE "http://localhost:5001/api/huggingface/cache"
 
 # Clear specific model cache
-curl -X DELETE "http://localhost:5000/api/huggingface/cache?model_id=gpt2"
+curl -X DELETE "http://localhost:5001/api/huggingface/cache?model_id=gpt2"
 ```
 
 **Example Response:**
@@ -500,7 +500,7 @@ Retrieves usage statistics for HuggingFace models.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:5000/api/huggingface/statistics"
+curl -X GET "http://localhost:5001/api/huggingface/statistics"
 ```
 
 **Example Response:**
@@ -534,7 +534,7 @@ Retrieves list of unique model types in the registry.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:5000/api/huggingface/model-types"
+curl -X GET "http://localhost:5001/api/huggingface/model-types"
 ```
 
 **Example Response:**
@@ -555,7 +555,7 @@ Checks if required dependencies are installed and available.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:5000/api/huggingface/dependencies"
+curl -X GET "http://localhost:5001/api/huggingface/dependencies"
 ```
 
 **Example Response:**
@@ -652,10 +652,10 @@ All endpoints return consistent error responses:
 
 ```bash
 # Pre-load frequently used models
-curl -X POST "http://localhost:5000/api/huggingface/models/gpt2/load"
+curl -X POST "http://localhost:5001/api/huggingface/models/gpt2/load"
 
 # Use appropriate parameters for your use case
-curl -X POST "http://localhost:5000/api/huggingface/generate" \
+curl -X POST "http://localhost:5001/api/huggingface/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "model_id": "gpt2",
@@ -665,7 +665,7 @@ curl -X POST "http://localhost:5000/api/huggingface/generate" \
   }'
 
 # Clear cache to free memory when done
-curl -X DELETE "http://localhost:5000/api/huggingface/cache"
+curl -X DELETE "http://localhost:5001/api/huggingface/cache"
 ```
 
 ---
@@ -676,10 +676,10 @@ curl -X DELETE "http://localhost:5000/api/huggingface/cache"
 
 ```bash
 # 1. Check dependencies
-curl -X GET "http://localhost:5000/api/huggingface/dependencies"
+curl -X GET "http://localhost:5001/api/huggingface/dependencies"
 
 # 2. Add a model
-curl -X POST "http://localhost:5000/api/huggingface/models" \
+curl -X POST "http://localhost:5001/api/huggingface/models" \
   -H "Content-Type: application/json" \
   -d '{
     "model_id": "gpt2",
@@ -688,7 +688,7 @@ curl -X POST "http://localhost:5000/api/huggingface/models" \
   }'
 
 # 3. Generate text
-curl -X POST "http://localhost:5000/api/huggingface/generate" \
+curl -X POST "http://localhost:5001/api/huggingface/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "model_id": "gpt2",
@@ -701,13 +701,13 @@ curl -X POST "http://localhost:5000/api/huggingface/generate" \
 
 ```bash
 # 1. List all models
-curl -X GET "http://localhost:5000/api/huggingface/models"
+curl -X GET "http://localhost:5001/api/huggingface/models"
 
 # 2. Get specific model info
-curl -X GET "http://localhost:5000/api/huggingface/models/gpt2"
+curl -X GET "http://localhost:5001/api/huggingface/models/gpt2"
 
 # 3. Update model parameters
-curl -X PUT "http://localhost:5000/api/huggingface/models/gpt2" \
+curl -X PUT "http://localhost:5001/api/huggingface/models/gpt2" \
   -H "Content-Type: application/json" \
   -d '{
     "parameters": {
@@ -717,7 +717,7 @@ curl -X PUT "http://localhost:5000/api/huggingface/models/gpt2" \
   }'
 
 # 4. Get usage statistics
-curl -X GET "http://localhost:5000/api/huggingface/statistics"
+curl -X GET "http://localhost:5001/api/huggingface/statistics"
 ```
 
 ---
@@ -731,7 +731,7 @@ import requests
 import json
 
 class HuggingFaceClient:
-    def __init__(self, base_url="http://localhost:5000"):
+    def __init__(self, base_url="http://localhost:5001"):
         self.base_url = f"{base_url}/api/huggingface"
 
     def add_model(self, model_id, name, model_type, **kwargs):
@@ -782,7 +782,7 @@ print(result["response"])
 
 ```javascript
 class HuggingFaceClient {
-  constructor(baseUrl = "http://localhost:5000") {
+  constructor(baseUrl = "http://localhost:5001") {
     this.baseUrl = `${baseUrl}/api/huggingface`;
   }
 
@@ -829,7 +829,7 @@ client
 
 ### Common Issues
 
-1. **Connection Refused**: Ensure the Flask server is running on port 5000
+1. **Connection Refused**: Ensure the Flask server is running on port 5001
 2. **Model Not Found**: Check if the model is added to the registry
 3. **Memory Issues**: Clear cache or use smaller models
 4. **Dependencies Missing**: Install transformers and torch packages
@@ -838,13 +838,13 @@ client
 
 ```bash
 # Check server status
-curl -X GET "http://localhost:5000/"
+curl -X GET "http://localhost:5001/"
 
 # Check dependencies
-curl -X GET "http://localhost:5000/api/huggingface/dependencies"
+curl -X GET "http://localhost:5001/api/huggingface/dependencies"
 
 # Check cache usage
-curl -X GET "http://localhost:5000/api/huggingface/cache"
+curl -X GET "http://localhost:5001/api/huggingface/cache"
 ```
 
 ---

@@ -1,5 +1,5 @@
 // Real API integration with Local LLM backend
-// This connects to the Flask backend running on localhost:5000
+// This connects to the Flask backend running on localhost:5001
 
 export interface ApiModel {
   name: string;
@@ -132,8 +132,8 @@ export class LocalLLMAPI {
   private baseURL: string;
 
   constructor() {
-    // Default to localhost:5000 where the Flask backend runs
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // Default to localhost:5001 where the Flask backend runs
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   }
 
   private async makeRequest<T>(

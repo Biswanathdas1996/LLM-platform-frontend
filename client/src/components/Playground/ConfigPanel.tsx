@@ -29,7 +29,7 @@ export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
   const { data: indexesData } = useQuery<{ indexes: Array<{ name: string; stats: any }> }>({
     queryKey: ['/api/rag/indexes'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:5000/api/rag/indexes');
+      const response = await fetch('http://localhost:5001/api/rag/indexes');
       if (!response.ok) throw new Error('Failed to fetch indexes');
       return response.json();
     },

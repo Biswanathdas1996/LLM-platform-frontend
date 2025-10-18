@@ -148,7 +148,7 @@ def create_app(config_name=None):
                 }
             },
             "documentation": {
-                "base_url": "http://localhost:5000",
+                "base_url": "http://localhost:5001",
                 "content_type": "application/json",
                 "example_requests": {
                     "upload_gguf_model": "POST /api/v1/models (with file in form-data)",

@@ -92,7 +92,7 @@ All tests **PASSED** ✅
 
 ```bash
 # Query a specific index (results ONLY from this index)
-curl -X POST http://localhost:5000/api/rag/query \
+curl -X POST http://localhost:5001/api/rag/query \
   -H "Content-Type: application/json" \
   -d '{
     "index_name": "medical_docs",

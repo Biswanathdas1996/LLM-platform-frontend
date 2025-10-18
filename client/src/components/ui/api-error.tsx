@@ -21,7 +21,7 @@ export function ApiError({ error, onRetry, title = "Connection Error" }: ApiErro
           </h3>
           <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
             {isConnectionError 
-              ? "The local LLM API service is not running. Please start it on port 5000 to use model features."
+              ? "The local LLM API service is not running. Please start it on port 5001 to use model features."
               : error?.message || "An error occurred while connecting to the API."
             }
           </p>

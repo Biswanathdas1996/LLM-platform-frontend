@@ -11,7 +11,7 @@ if __name__ == '__main__':
         # Get configuration from environment
         config_name = os.environ.get('FLASK_ENV', 'development')
         host = os.environ.get('HOST', '127.0.0.1')
-        port = int(os.environ.get('PORT', 5000))
+        port = int(os.environ.get('PORT', 5001))
         
         # Create application
         app = create_app(config_name)

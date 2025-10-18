@@ -8,7 +8,7 @@ console.log('Starting backend server...');
 const backend = spawn('npx', ['tsx', 'server/index.ts'], {
   stdio: 'inherit',
   shell: true,
-  env: { ...process.env, NODE_ENV: 'development', PORT: '5000' }
+  env: { ...process.env, NODE_ENV: 'development', PORT: '5001' }
 });
 
 // Give backend time to start, then start frontend

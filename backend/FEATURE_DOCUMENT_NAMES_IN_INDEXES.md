@@ -73,14 +73,14 @@ Now you also get a list of document names in each index:
 
 ### cURL
 ```bash
-curl -X GET http://localhost:5000/api/rag/indexes
+curl -X GET http://localhost:5001/api/rag/indexes
 ```
 
 ### Python
 ```python
 import requests
 
-response = requests.get('http://localhost:5000/api/rag/indexes')
+response = requests.get('http://localhost:5001/api/rag/indexes')
 data = response.json()
 
 for index in data['indexes']:

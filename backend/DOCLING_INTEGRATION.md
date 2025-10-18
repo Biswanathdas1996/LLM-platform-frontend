@@ -166,7 +166,7 @@ The existing RAG API endpoints automatically benefit from Docling:
 
 ```bash
 # Upload endpoint (POST /api/rag/upload)
-curl -X POST http://localhost:5000/api/rag/upload \
+curl -X POST http://localhost:5001/api/rag/upload \
   -F "index_name=docs" \
   -F "files=@document.pdf"
 ```

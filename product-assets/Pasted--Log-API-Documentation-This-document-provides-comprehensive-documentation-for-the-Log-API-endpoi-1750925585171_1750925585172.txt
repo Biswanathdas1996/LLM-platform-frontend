@@ -9,7 +9,7 @@ The Log API allows you to retrieve recent API and error logs from the Local LLM 
 ## Base URL
 
 ```
-http://127.0.0.1:5000/api/v1
+http://127.0.0.1:5001/api/v1
 ```
 
 ## Authentication
@@ -24,7 +24,7 @@ Retrieve recent API and error logs from the application.
 
 **Endpoint:** `GET /logs`
 
-**Full URL:** `http://127.0.0.1:5000/api/v1/logs`
+**Full URL:** `http://127.0.0.1:5001/api/v1/logs`
 
 **Method:** `GET`
 
@@ -37,7 +37,7 @@ Retrieve recent API and error logs from the application.
 ##### Using curl (Command Line)
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/logs" \
+curl -X GET "http://127.0.0.1:5001/api/v1/logs" \
   -H "Content-Type: application/json"
 ```
 
@@ -59,7 +59,7 @@ curl -X GET "http://127.0.0.1:5000/api/v1/logs" \
       "module": "logger",
       "request_id": "req_1750919549626073",
       "method": "GET",
-      "url": "http://127.0.0.1:5000/api/v1/health",
+      "url": "http://127.0.0.1:5001/api/v1/health",
       "endpoint": "api.health_check",
       "remote_addr": "127.0.0.1",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -71,7 +71,7 @@ curl -X GET "http://127.0.0.1:5000/api/v1/logs" \
       "module": "logger",
       "request_id": "req_1750919549626073",
       "method": "GET",
-      "url": "http://127.0.0.1:5000/api/v1/health",
+      "url": "http://127.0.0.1:5001/api/v1/health",
       "endpoint": "api.health_check",
       "remote_addr": "127.0.0.1",
       "status_code": 200,
@@ -84,7 +84,7 @@ curl -X GET "http://127.0.0.1:5000/api/v1/logs" \
       "module": "logger",
       "request_id": "req_1750965442891",
       "method": "POST",
-      "url": "http://127.0.0.1:5000/api/v1/generate",
+      "url": "http://127.0.0.1:5001/api/v1/generate",
       "endpoint": "api.generate_response",
       "remote_addr": "127.0.0.1",
       "user_agent": "curl/7.68.0"

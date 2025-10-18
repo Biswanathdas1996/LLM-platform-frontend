@@ -136,13 +136,13 @@ def main():
         
         app = create_app('development')
         
-        print(f"\n🌐 Starting server on http://localhost:5000")
-        print(f"📚 API documentation at: http://localhost:5000")
+        print(f"\n🌐 Starting server on http://localhost:5001")
+        print(f"📚 API documentation at: http://localhost:5001")
         print(f"🎮 Playground available in frontend")
         
         app.run(
             host='0.0.0.0',
-            port=5000,
+            port=5001,
             debug=False,  # Disable debug for better performance
             threaded=True,
             use_reloader=False  # Disable reloader for production-like performance

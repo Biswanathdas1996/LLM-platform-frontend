@@ -18,7 +18,7 @@ export function useNotifications() {
     setNotifications(prev => [...prev, newNotification]);
 
     // Auto-remove after duration (default 5 seconds)
-    const duration = notification.duration || 5000;
+    const duration = notification.duration || 5001;
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== id));
     }, duration);

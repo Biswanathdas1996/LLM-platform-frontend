@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { registerRoutes } from './routes';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const isDev = process.env.NODE_ENV !== 'production';
 
 async function createServer() {

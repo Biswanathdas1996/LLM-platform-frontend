@@ -48,8 +48,8 @@ export class DeepSeekAPI {
   private baseURL: string;
 
   constructor() {
-    // Default to localhost:5000 where the Flask backend runs
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    // Default to localhost:5001 where the Flask backend runs
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   }
 
   private async makeRequest<T>(

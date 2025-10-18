@@ -16,7 +16,7 @@ export function useModels() {
     queryKey: ['/api/v1/models'],
     queryFn: () => api.getModels(),
     retry: 0, // Don't retry to avoid spam when API is down
-    staleTime: 5000, // Cache for 5 seconds
+    staleTime: 5001, // Cache for 5 seconds
   });
 }
 
@@ -75,7 +75,7 @@ export function useCacheStatus() {
     queryKey: ['/api/v1/cache'],
     queryFn: () => api.getCacheStatus(),
     retry: 0, // Don't retry to avoid spam when API is down
-    staleTime: 5000, // Cache for 5 seconds
+    staleTime: 5001, // Cache for 5 seconds
   });
 }
 
@@ -93,9 +93,9 @@ export function usePerformanceMetrics() {
   return useQuery({
     queryKey: ['performance-metrics'],
     queryFn: () => api.getPerformanceMetrics(),
-    refetchInterval: 15000, // Refetch every 15 seconds
+    refetchInterval: 15001, // Refetch every 15 seconds
     retry: 0,
-    staleTime: 5000, // Cache for 5 seconds
+    staleTime: 5001, // Cache for 5 seconds
   });
 }
 

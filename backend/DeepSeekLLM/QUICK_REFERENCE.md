@@ -13,13 +13,13 @@ python main.py
 
 ```bash
 # Health check
-curl http://localhost:5000/api/deepseek/health
+curl http://localhost:5001/api/deepseek/health
 
 # List models
-curl http://localhost:5000/api/deepseek/models
+curl http://localhost:5001/api/deepseek/models
 
 # Quick test
-curl -X POST http://localhost:5000/api/deepseek/test
+curl -X POST http://localhost:5001/api/deepseek/test
 ```
 
 ## Essential Endpoints
@@ -37,7 +37,7 @@ curl -X POST http://localhost:5000/api/deepseek/test
 ### Simple Text Generation
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/generate \
+curl -X POST http://localhost:5001/api/deepseek/generate \
   -H "Content-Type: application/json" \
   -d '{"model_name": "DeepSeek-R1-q2_k.gguf", "prompt": "Your question here"}'
 ```
@@ -45,7 +45,7 @@ curl -X POST http://localhost:5000/api/deepseek/generate \
 ### Creative Writing (Higher Temperature)
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/generate \
+curl -X POST http://localhost:5001/api/deepseek/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "DeepSeek-R1-q2_k.gguf",
@@ -58,7 +58,7 @@ curl -X POST http://localhost:5000/api/deepseek/generate \
 ### Factual Responses (Lower Temperature)
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/generate \
+curl -X POST http://localhost:5001/api/deepseek/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "DeepSeek-R1-q2_k.gguf",
@@ -128,6 +128,6 @@ curl -X POST http://localhost:5000/api/deepseek/generate \
 | Out of memory         | Use smaller model (q2_k) or reduce n_ctx   |
 | Slow response         | Reduce max_tokens or increase n_threads    |
 | Server not responding | Check if `python main.py` is running       |
-| Connection refused    | Verify port 5000 is available              |
+| Connection refused    | Verify port 5001 is available              |
 
 ## Integration Templates

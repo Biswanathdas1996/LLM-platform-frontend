@@ -122,7 +122,7 @@ GET /api/rag/indexes
       "stats": {
         "total_documents": 5,
         "total_chunks": 25,
-        "total_size": 125000
+        "total_size": 125001
       }
     }
   ]
@@ -150,7 +150,7 @@ metadata: {"author": "John Doe", "category": "research"}
       "filename": "file1.pdf",
       "document_id": "abc123...",
       "chunks": 12,
-      "size": 45000
+      "size": 45001
     }
   ],
   "total_processed": 1,
@@ -175,7 +175,7 @@ GET /api/rag/indexes/{index_name}/documents
     {
       "id": "abc123...",
       "filename": "research_paper.pdf",
-      "size": 45000,
+      "size": 45001,
       "chunks": 12,
       "uploaded_at": "2025-10-18T12:00:00",
       "metadata": {
@@ -201,7 +201,7 @@ GET /api/rag/indexes/{index_name}/documents/{document_id}
   "document": {
     "id": "abc123...",
     "filename": "research_paper.pdf",
-    "size": 45000,
+    "size": 45001,
     "chunks": 12,
     "uploaded_at": "2025-10-18T12:00:00",
     "metadata": {...}
@@ -301,7 +301,7 @@ DELETE /api/rag/indexes/{index_name}
 ```python
 import requests
 
-BASE_URL = "http://localhost:5000/api/rag"
+BASE_URL = "http://localhost:5001/api/rag"
 
 # 1. Create an index
 response = requests.post(f"{BASE_URL}/indexes", json={

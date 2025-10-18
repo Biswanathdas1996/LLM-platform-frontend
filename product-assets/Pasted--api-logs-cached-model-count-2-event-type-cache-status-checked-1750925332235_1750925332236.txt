@@ -39,7 +39,7 @@
       "status_code": 200,
       "timestamp": "2025-06-26T08:06:20.775277",
       "type": "response",
-      "url": "http://127.0.0.1:5000/api/v1/cache/status"
+      "url": "http://127.0.0.1:5001/api/v1/cache/status"
     },
     {
       "args": {},
@@ -55,7 +55,7 @@
       "request_id": "req_1750925181741063",
       "timestamp": "2025-06-26T08:06:21.742061",
       "type": "request",
-      "url": "http://127.0.0.1:5000/api/v1/models/sync",
+      "url": "http://127.0.0.1:5001/api/v1/models/sync",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     },
     {

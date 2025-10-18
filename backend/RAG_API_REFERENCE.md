@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:5000/api/rag
+http://localhost:5001/api/rag
 ```
 
 ## Endpoints
@@ -141,7 +141,7 @@ Content-Type: application/json
 
 ### Upload Document
 ```bash
-curl -X POST http://localhost:5000/api/rag/upload \
+curl -X POST http://localhost:5001/api/rag/upload \
   -F "index_name=docs" \
   -F "files=@document.pdf" \
   -F 'metadata={"category":"tech"}'
@@ -149,7 +149,7 @@ curl -X POST http://localhost:5000/api/rag/upload \
 
 ### Query
 ```bash
-curl -X POST http://localhost:5000/api/rag/query \
+curl -X POST http://localhost:5001/api/rag/query \
   -H "Content-Type: application/json" \
   -d '{
     "index_name": "docs",
@@ -161,12 +161,12 @@ curl -X POST http://localhost:5000/api/rag/query \
 
 ### List Documents
 ```bash
-curl http://localhost:5000/api/rag/indexes/docs/documents
+curl http://localhost:5001/api/rag/indexes/docs/documents
 ```
 
 ### Delete Document
 ```bash
-curl -X DELETE http://localhost:5000/api/rag/indexes/docs/documents/abc123
+curl -X DELETE http://localhost:5001/api/rag/indexes/docs/documents/abc123
 ```
 
 ---
@@ -177,7 +177,7 @@ curl -X DELETE http://localhost:5000/api/rag/indexes/docs/documents/abc123
 import requests
 import json
 
-BASE_URL = "http://localhost:5000/api/rag"
+BASE_URL = "http://localhost:5001/api/rag"
 
 # Create index
 requests.post(f"{BASE_URL}/indexes", json={"index_name": "docs"})

@@ -207,7 +207,7 @@ data = {
 }
 
 response = requests.post(
-    'http://localhost:5000/api/rag/upload',
+    'http://localhost:5001/api/rag/upload',
     files=files,
     data=data
 )
@@ -218,7 +218,7 @@ print(response.json())
 
 ```python
 response = requests.get(
-    'http://localhost:5000/api/rag/indexes/my_docs/documents'
+    'http://localhost:5001/api/rag/indexes/my_docs/documents'
 )
 docs = response.json()
 
@@ -231,7 +231,7 @@ for doc in docs['documents']:
 
 ```python
 response = requests.post(
-    'http://localhost:5000/api/rag/query',
+    'http://localhost:5001/api/rag/query',
     json={
         'index_name': 'my_docs',
         'query': 'machine learning algorithms',
@@ -252,13 +252,13 @@ for result in results['results']:
 ```python
 # First, list documents to get IDs
 docs_response = requests.get(
-    'http://localhost:5000/api/rag/indexes/my_docs/documents'
+    'http://localhost:5001/api/rag/indexes/my_docs/documents'
 )
 doc_id = docs_response.json()['documents'][0]['id']
 
 # Get detailed info
 detail_response = requests.get(
-    f'http://localhost:5000/api/rag/indexes/my_docs/documents/{doc_id}'
+    f'http://localhost:5001/api/rag/indexes/my_docs/documents/{doc_id}'
 )
 
 details = detail_response.json()
@@ -274,7 +274,7 @@ for chunk in details['chunks']:
 
 ```python
 response = requests.delete(
-    f'http://localhost:5000/api/rag/indexes/my_docs/documents/{doc_id}'
+    f'http://localhost:5001/api/rag/indexes/my_docs/documents/{doc_id}'
 )
 print(response.json()['message'])
 ```

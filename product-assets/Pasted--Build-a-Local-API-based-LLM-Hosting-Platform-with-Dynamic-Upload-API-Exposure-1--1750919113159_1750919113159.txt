@@ -32,7 +32,7 @@ use the below apis from frontend only , no server should be involbed
 
 The Local LLM API provides endpoints for managing and interacting with local language models. This RESTful API allows you to upload models, generate text responses, and manage model caching.
 
-**Base URL:** `http://127.0.0.1:5000/api/v1`
+**Base URL:** `http://127.0.0.1:5001/api/v1`
 
 ---
 
@@ -47,7 +47,7 @@ The Local LLM API provides endpoints for managing and interacting with local lan
 **CURL:**
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/health"
+curl -X GET "http://127.0.0.1:5001/api/v1/health"
 ```
 
 **Expected Response:**
@@ -73,7 +73,7 @@ curl -X GET "http://127.0.0.1:5000/api/v1/health"
 **CURL:**
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/models"
+curl -X GET "http://127.0.0.1:5001/api/v1/models"
 ```
 
 **Expected Response:**
@@ -122,7 +122,7 @@ curl -X GET "http://127.0.0.1:5000/api/v1/models"
 **CURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/models" \
+curl -X POST "http://127.0.0.1:5001/api/v1/models" \
   -F "file=@/path/to/your/model.gguf"
 ```
 
@@ -186,10 +186,10 @@ curl -X POST "http://127.0.0.1:5000/api/v1/models" \
 
 ```bash
 # Delete with .gguf extension
-curl -X DELETE "http://127.0.0.1:5000/api/v1/models/model.gguf"
+curl -X DELETE "http://127.0.0.1:5001/api/v1/models/model.gguf"
 
 # Delete without extension (will auto-append .gguf)
-curl -X DELETE "http://127.0.0.1:5000/api/v1/models/model"
+curl -X DELETE "http://127.0.0.1:5001/api/v1/models/model"
 ```
 
 **Expected Response:**
@@ -227,7 +227,7 @@ curl -X DELETE "http://127.0.0.1:5000/api/v1/models/model"
 **CURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/models/sync"
+curl -X POST "http://127.0.0.1:5001/api/v1/models/sync"
 ```
 
 **Expected Response:**
@@ -290,7 +290,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/models/sync"
 **CURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/generate" \
+curl -X POST "http://127.0.0.1:5001/api/v1/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "question": "What is artificial intelligence?",
@@ -362,7 +362,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/generate" \
 **CURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/cache/clear"
+curl -X POST "http://127.0.0.1:5001/api/v1/cache/clear"
 ```
 
 **Expected Response:**
@@ -389,7 +389,7 @@ curl -X POST "http://127.0.0.1:5000/api/v1/cache/clear"
 **CURL:**
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/cache/status"
+curl -X GET "http://127.0.0.1:5001/api/v1/cache/status"
 ```
 
 **Expected Response:**
@@ -416,7 +416,7 @@ curl -X GET "http://127.0.0.1:5000/api/v1/cache/status"
 ### Environment Variables
 
 - `HOST` - Server host (default: 127.0.0.1)
-- `PORT` - Server port (default: 5000)
+- `PORT` - Server port (default: 5001)
 - `API_PREFIX` - API path prefix (default: /api/v1)
 - `MAX_CONTENT_LENGTH` - Maximum upload size (default: 10GB)
 - `DEFAULT_N_GPU_LAYERS` - Default GPU layers (default: 40)
@@ -470,26 +470,26 @@ No rate limiting is currently implemented.
 1. **Check API Health:**
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/health"
+curl -X GET "http://127.0.0.1:5001/api/v1/health"
 ```
 
 2. **List Current Models:**
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/models"
+curl -X GET "http://127.0.0.1:5001/api/v1/models"
 ```
 
 3. **Upload a New Model:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/models" \
+curl -X POST "http://127.0.0.1:5001/api/v1/models" \
   -F "file=@./my-model.gguf"
 ```
 
 4. **Generate Text:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/generate" \
+curl -X POST "http://127.0.0.1:5001/api/v1/generate" \
   -H "Content-Type: application/json" \
   -d '{
     "question": "Explain quantum computing",
@@ -501,19 +501,19 @@ curl -X POST "http://127.0.0.1:5000/api/v1/generate" \
 5. **Check Cache Status:**
 
 ```bash
-curl -X GET "http://127.0.0.1:5000/api/v1/cache/status"
+curl -X GET "http://127.0.0.1:5001/api/v1/cache/status"
 ```
 
 6. **Clear Cache:**
 
 ```bash
-curl -X POST "http://127.0.0.1:5000/api/v1/cache/clear"
+curl -X POST "http://127.0.0.1:5001/api/v1/cache/clear"
 ```
 
 7. **Delete Model:**
 
 ```bash
-curl -X DELETE "http://127.0.0.1:5000/api/v1/models/my-model.gguf"
+curl -X DELETE "http://127.0.0.1:5001/api/v1/models/my-model.gguf"
 ```
 
 ---

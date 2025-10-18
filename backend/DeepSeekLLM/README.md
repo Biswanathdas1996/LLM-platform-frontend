@@ -7,7 +7,7 @@ The DeepSeek LLM API provides endpoints for text generation using DeepSeek model
 ## Base URL
 
 ```
-http://localhost:5000/api/deepseek
+http://localhost:5001/api/deepseek
 ```
 
 ## Authentication
@@ -33,7 +33,7 @@ Check the status and availability of the DeepSeek service.
 **Sample Request:**
 
 ```bash
-curl -X GET http://localhost:5000/api/deepseek/health
+curl -X GET http://localhost:5001/api/deepseek/health
 ```
 
 **Sample Response:**
@@ -77,7 +77,7 @@ Get a list of all available DeepSeek models.
 **Sample Request:**
 
 ```bash
-curl -X GET http://localhost:5000/api/deepseek/models
+curl -X GET http://localhost:5001/api/deepseek/models
 ```
 
 **Sample Response:**
@@ -129,7 +129,7 @@ Get detailed information about a specific DeepSeek model.
 **Sample Request:**
 
 ```bash
-curl -X GET http://localhost:5000/api/deepseek/models/DeepSeek-R1-q2_k.gguf
+curl -X GET http://localhost:5001/api/deepseek/models/DeepSeek-R1-q2_k.gguf
 ```
 
 **Sample Response:**
@@ -180,7 +180,7 @@ Generate text using a specified DeepSeek model.
 **Sample Request (Full Parameters):**
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/generate \
+curl -X POST http://localhost:5001/api/deepseek/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "DeepSeek-R1-q2_k.gguf",
@@ -197,7 +197,7 @@ curl -X POST http://localhost:5000/api/deepseek/generate \
 **Sample Request (Minimal Parameters):**
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/generate \
+curl -X POST http://localhost:5001/api/deepseek/generate \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "DeepSeek-R1-q2_k.gguf",
@@ -273,13 +273,13 @@ Quick test endpoint with default parameters for easy testing.
 **Sample Request (Default Test):**
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/test
+curl -X POST http://localhost:5001/api/deepseek/test
 ```
 
 **Sample Request (Custom Parameters):**
 
 ```bash
-curl -X POST http://localhost:5000/api/deepseek/test \
+curl -X POST http://localhost:5001/api/deepseek/test \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "DeepSeek-R1-q4_k_m.gguf",
@@ -319,7 +319,7 @@ import requests
 import json
 
 # Base URL for DeepSeek API
-BASE_URL = "http://localhost:5000/api/deepseek"
+BASE_URL = "http://localhost:5001/api/deepseek"
 
 def test_deepseek_health():
     """Test DeepSeek service health."""
@@ -376,7 +376,7 @@ if __name__ == "__main__":
 ```javascript
 const axios = require("axios");
 
-const BASE_URL = "http://localhost:5000/api/deepseek";
+const BASE_URL = "http://localhost:5001/api/deepseek";
 
 class DeepSeekClient {
   constructor(baseUrl = BASE_URL) {
@@ -474,7 +474,7 @@ module.exports = DeepSeekClient;
 #!/bin/bash
 
 # DeepSeek API Test Script
-BASE_URL="http://localhost:5000/api/deepseek"
+BASE_URL="http://localhost:5001/api/deepseek"
 
 echo "=== DeepSeek API Testing Script ==="
 
@@ -571,7 +571,7 @@ All API responses include a `success` boolean field. When `success` is `false`, 
 
 ### Connection Issues
 
-- Verify the API server is running on port 5000
+- Verify the API server is running on port 5001
 - Check firewall settings
 - Ensure correct base URL in client applications
 

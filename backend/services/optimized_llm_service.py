@@ -288,10 +288,10 @@ class OptimizedLLMService:
                         None,
                         lambda: instance.model(prompt, **generation_params)
                     ),
-                    timeout=60.0  # 60 second timeout
+                    timeout=7200.0  # 2 hour timeout (7200 seconds)
                 )
             except asyncio.TimeoutError:
-                raise Exception("Generation timed out after 60 seconds")
+                raise Exception("Generation timed out after 2 hours")
             
             processing_time = time.time() - start_time
             

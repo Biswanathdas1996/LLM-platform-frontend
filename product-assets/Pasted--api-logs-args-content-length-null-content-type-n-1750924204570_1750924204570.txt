@@ -13,7 +13,7 @@
       "request_id": "req_1750919549626073",
       "timestamp": "2025-06-26T06:32:29.626073",
       "type": "request",
-      "url": "http://127.0.0.1:5000/api/v1/health",
+      "url": "http://127.0.0.1:5001/api/v1/health",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     },
     {
@@ -29,7 +29,7 @@
       "request_id": "req_1750919549629967",
       "timestamp": "2025-06-26T06:32:29.632422",
       "type": "request",
-      "url": "http://127.0.0.1:5000/api/v1/models",
+      "url": "http://127.0.0.1:5001/api/v1/models",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     },
     {
@@ -45,7 +45,7 @@
       "request_id": "req_1750919549632422",
       "timestamp": "2025-06-26T06:32:29.632422",
       "type": "request",
-      "url": "http://127.0.0.1:5000/api/v1/cache/status",
+      "url": "http://127.0.0.1:5001/api/v1/cache/status",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     },
     {
@@ -61,7 +61,7 @@
       "status_code": 200,
       "timestamp": "2025-06-26T06:32:29.634434",
       "type": "response",
-      "url": "http://127.0.0.1:5000/api/v1/models"
+      "url": "http://127.0.0.1:5001/api/v1/models"
     },
     {
       "args": {},
@@ -76,7 +76,7 @@
       "request_id": "req_1750919549634434",
       "timestamp": "2025-06-26T06:32:29.634434",
       "type": "request",
-      "url": "http://127.0.0.1:5000/api/v1/health",
+      "url": "http://127.0.0.1:5001/api/v1/health",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     },
     {
@@ -96,7 +96,7 @@
       "status_code": 200,
       "timestamp": "2025-06-26T07:45:46.762229",
       "type": "response",
-      "url": "http://localhost:5000/api/v1/logs"
+      "url": "http://localhost:5001/api/v1/logs"
     },
     {
       "args": {},
@@ -111,7 +111,7 @@
       "request_id": "req_1750924051001681",
       "timestamp": "2025-06-26T07:47:31.001681",
       "type": "request",
-      "url": "http://localhost:5000/api/v1/logs",
+      "url": "http://localhost:5001/api/v1/logs",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     },
     {
@@ -137,7 +137,7 @@
       "status_code": 200,
       "timestamp": "2025-06-26T07:47:31.060620",
       "type": "response",
-      "url": "http://localhost:5000/api/v1/logs"
+      "url": "http://localhost:5001/api/v1/logs"
     },
     {
       "args": {},
@@ -152,7 +152,7 @@
       "request_id": "req_1750924149326254",
       "timestamp": "2025-06-26T07:49:09.327253",
       "type": "request",
-      "url": "http://localhost:5000/api/v1/logs",
+      "url": "http://localhost:5001/api/v1/logs",
       "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
     }
   ],
