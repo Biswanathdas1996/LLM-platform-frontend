@@ -70,21 +70,41 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
           const ragResponse = await ragQueryMutation.mutateAsync({
             index_names: selectedIndexes,
             query: inputMessage,
-            k: 3,  // Reduced from 5 for faster responses
+            k: 2,  // Optimized: Use top 2 most relevant chunks for best quality/speed balance
             mode: 'hybrid',
           });
 
           if (ragResponse.success && ragResponse.results.length > 0) {
-            // Build optimized context from RAG results
-            const context = ragResponse.results
-              .slice(0, 3)  // Limit to top 3 results
-              .map((result, idx) => 
-                `[${idx + 1}] ${result.document_name}: ${result.text.substring(0, 300)}${result.text.length > 300 ? '...' : ''}`  // Truncate to 300 chars
-              )
-              .join('\n\n');
+            // Build highly optimized context from RAG results
+            // Only use results with good relevance scores (>50%)
+            const relevantResults = ragResponse.results.filter(r => r.score > 0.5);
+            
+            if (relevantResults.length > 0) {
+              const context = relevantResults
+                .slice(0, 2)  // Limit to top 2 results
+                .map((result, idx) => {
+                  // Smart truncation: prefer complete sentences
+                  let text = result.text;
+                  if (text.length > 400) {
+                    // Find last sentence within 400 chars
+                    const truncated = text.substring(0, 400);
+                    const lastPeriod = truncated.lastIndexOf('.');
+                    const lastQuestion = truncated.lastIndexOf('?');
+                    const lastExclamation = truncated.lastIndexOf('!');
+                    const lastSentenceEnd = Math.max(lastPeriod, lastQuestion, lastExclamation);
+                    
+                    text = lastSentenceEnd > 200 
+                      ? truncated.substring(0, lastSentenceEnd + 1)
+                      : truncated + '...';
+                  }
+                  
+                  return `[${idx + 1}] ${result.document_name} (${(result.score * 100).toFixed(0)}%): ${text}`;
+                })
+                .join('\n\n');
 
-            // Compact prompt with RAG context
-            finalPrompt = `Context from documents:\n${context}\n\nQuestion: ${inputMessage}\n\nAnswer based on the context above. Be concise and cite sources [1], [2], [3]:`;
+              // Ultra-compact prompt optimized for speed
+              finalPrompt = `Context:\n${context}\n\nQ: ${inputMessage}\n\nA (cite [1] or [2]):`;
+            }
           }
         } catch (ragError) {
           console.warn('RAG query failed, proceeding without context:', ragError);

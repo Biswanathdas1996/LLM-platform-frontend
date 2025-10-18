@@ -14,6 +14,8 @@ from collections import Counter
 import math
 from functools import lru_cache
 import time
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Document processing with Docling
 from docling.document_converter import DocumentConverter
@@ -31,10 +33,21 @@ class TextChunker:
     """Advanced text chunking with overlap and smart splitting"""
     
     @staticmethod
-    def chunk_text(text: str, chunk_size: int = 256, overlap: int = 50) -> List[Dict[str, Any]]:
+    def chunk_text(text: str, chunk_size: int = 256, overlap: int = 50, mode: str = 'semantic') -> List[Dict[str, Any]]:
         """
         Split text into smaller chunks with overlap for better retrieval
-        Default chunk_size reduced to 256 words for more granular retrieval
+        mode: 'semantic' (default, sentence-based) or 'fixed' (word-based)
+        """
+        if mode == 'semantic':
+            return TextChunker._semantic_chunk(text, chunk_size, overlap)
+        else:
+            return TextChunker._fixed_chunk(text, chunk_size, overlap)
+    
+    @staticmethod
+    def _semantic_chunk(text: str, chunk_size: int, overlap: int) -> List[Dict[str, Any]]:
+        """
+        Semantic chunking: Split by sentences, group by topic coherence
+        This produces better context-aware chunks
         """
         chunks = []
         sentences = TextChunker._split_sentences(text)
@@ -59,7 +72,7 @@ class TextChunker:
                     'start_sentence': i - len(current_chunk),
                     'end_sentence': i - 1,
                     'word_count': current_size,
-                    'keywords': keywords  # Add keywords for search
+                    'keywords': keywords
                 })
                 
                 # Create overlap by keeping last few sentences
@@ -84,6 +97,37 @@ class TextChunker:
                 'word_count': current_size,
                 'keywords': keywords
             })
+        
+        return chunks
+    
+    @staticmethod
+    def _fixed_chunk(text: str, chunk_size: int, overlap: int) -> List[Dict[str, Any]]:
+        """
+        Fixed chunking: Split by word count regardless of sentence boundaries
+        Faster but less semantic coherence
+        """
+        chunks = []
+        words = text.split()
+        chunk_id = 0
+        i = 0
+        
+        while i < len(words):
+            # Get chunk_size words
+            chunk_words = words[i:i + chunk_size]
+            chunk_text = ' '.join(chunk_words)
+            
+            keywords = TextChunker._extract_keywords(chunk_text)
+            
+            chunks.append({
+                'id': chunk_id,
+                'text': chunk_text,
+                'word_count': len(chunk_words),
+                'keywords': keywords
+            })
+            
+            # Move forward by chunk_size - overlap
+            i += max(chunk_size - overlap, 1)
+            chunk_id += 1
         
         return chunks
     
@@ -225,6 +269,7 @@ class VectorStore:
         self.enable_cache = enable_cache
         self.cache_size = cache_size
         self._query_cache = {}  # Cache for query results
+        self._embedding_cache = {}  # Cache for query embeddings (NEW)
         self._last_query_time = {}  # Track query times for timeout
         
     def add_documents(self, texts: List[str], metadatas: List[Dict[str, Any]] = None):
@@ -312,13 +357,26 @@ class VectorStore:
             raise TimeoutError(f"Operation exceeded timeout of {timeout}s")
     
     def _vector_search(self, query: str, k: int, timeout: float = None) -> List[Tuple[Dict, float]]:
-        """Vector similarity search with timeout protection"""
+        """Vector similarity search with timeout protection and embedding caching"""
         start_time = time.time()
         
         if not self.vectors:
             return []
         
-        query_embedding = self.embedder.embed(query)
+        # Check embedding cache first
+        if self.enable_cache and query in self._embedding_cache:
+            query_embedding = self._embedding_cache[query]
+            logger.debug(f"Embedding cache hit for query: {query[:50]}...")
+        else:
+            query_embedding = self.embedder.embed(query)
+            # Cache the embedding
+            if self.enable_cache:
+                if len(self._embedding_cache) >= self.cache_size:
+                    # Remove oldest entry (simple FIFO)
+                    oldest_key = next(iter(self._embedding_cache))
+                    del self._embedding_cache[oldest_key]
+                self._embedding_cache[query] = query_embedding
+        
         self._check_timeout(start_time, timeout)
         
         # Calculate cosine similarities
@@ -847,6 +905,10 @@ class RAGService:
         
         query_time = time.time() - start_time
         
+        # Apply reranking for better relevance
+        if len(all_results) > k and len(all_results) > 0:
+            top_results = self._rerank_results(query, all_results, k)
+        
         logger.info(f"Multi-index RAG query completed in {query_time:.3f}s: {len(top_results)} results from {len(index_names)} indexes")
         
         return {
@@ -861,6 +923,60 @@ class RAGService:
             'context_length': total_context_length,
             'errors': errors if errors else None
         }
+    
+    def _rerank_results(self, query: str, results: List[Dict], k: int) -> List[Dict]:
+        """
+        Rerank results using TF-IDF similarity for better relevance.
+        This helps prioritize chunks that are semantically closer to the query.
+        """
+        try:
+            # Extract texts and create corpus
+            texts = [r['text'] for r in results]
+            corpus = [query] + texts
+            
+            # Compute TF-IDF
+            vectorizer = TfidfVectorizer(stop_words='english', max_features=500)
+            tfidf_matrix = vectorizer.fit_transform(corpus)
+            
+            # Calculate cosine similarity between query and each result
+            query_vec = tfidf_matrix[0:1]
+            doc_vecs = tfidf_matrix[1:]
+            similarities = cosine_similarity(query_vec, doc_vecs)[0]
+            
+            # Combine original scores with reranking scores
+            for i, result in enumerate(results):
+                # Weighted combination: 70% original score + 30% reranking score
+                original_score = result['score']
+                rerank_score = float(similarities[i])
+                result['score'] = 0.7 * original_score + 0.3 * rerank_score
+                result['rerank_score'] = rerank_score
+            
+            # Re-sort by combined score
+            results.sort(key=lambda x: x['score'], reverse=True)
+            
+            # Apply context length limiting after reranking
+            top_results = []
+            total_context_length = 0
+            
+            for result in results[:k]:
+                text_length = len(result['text'])
+                if total_context_length + text_length > self.max_context_length:
+                    remaining = self.max_context_length - total_context_length
+                    if remaining > 100:
+                        result['text'] = result['text'][:remaining] + "..."
+                        total_context_length += remaining
+                        top_results.append(result)
+                    break
+                
+                total_context_length += text_length
+                top_results.append(result)
+            
+            return top_results
+            
+        except Exception as e:
+            logger.warning(f"Reranking failed: {e}. Falling back to original ranking.")
+            # Fall back to original ranking
+            return results[:k]
     
     def list_indexes(self) -> Dict[str, Any]:
         """List all available indexes with document names"""
