@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Database, Search, Trash2, Plus, FileText, Loader2 } from "lucide-react";
+import { Upload, Database, Search, Trash2, Plus, FileText, Loader2, CheckCircle, XCircle, Info } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { RAGIndex, RAGQueryResult, RAGUploadResponse } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -149,6 +150,13 @@ export default function BYOD() {
         <p className="text-muted-foreground mt-2">
           Upload documents, create indexes, and query using hybrid RAG search (vector + keyword)
         </p>
+        <Alert className="mt-4">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Enhanced RAG System:</strong> Uses local embeddings (all-MiniLM-L6-v2), semantic chunking with sentence boundaries, 
+            and hybrid search combining vector similarity with TF-IDF keyword matching. Supports unlimited file sizes.
+          </AlertDescription>
+        </Alert>
       </div>
 
       <Tabs defaultValue="upload" className="space-y-4">
@@ -215,9 +223,22 @@ export default function BYOD() {
                   data-testid="input-file-upload"
                 />
                 {selectedFiles && (
-                  <p className="text-sm text-muted-foreground">
-                    {selectedFiles.length} file(s) selected
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">
+                      {selectedFiles.length} file(s) selected
+                    </p>
+                    <div className="space-y-1">
+                      {Array.from(selectedFiles).map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-3 h-3" />
+                            {file.name}
+                          </span>
+                          <span>{(file.size / 1024).toFixed(1)} KB</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
