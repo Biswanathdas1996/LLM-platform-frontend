@@ -50,13 +50,18 @@ export function AnalyticsDashboard() {
       formData.append('file', file);
       
       setUploadProgress(50);
-      const result = await apiRequest('/api/analytics/upload', {
+      const response = await fetch('/api/analytics/upload', {
         method: 'POST',
         body: formData,
       });
-      setUploadProgress(100);
       
-      return result;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Upload failed');
+      }
+      
+      setUploadProgress(100);
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -80,9 +85,16 @@ export function AnalyticsDashboard() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest(`/api/analytics/datasets/${id}`, {
+      const response = await fetch(`/api/analytics/datasets/${id}`, {
         method: 'DELETE',
       });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Delete failed');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
