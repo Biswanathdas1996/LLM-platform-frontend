@@ -3,6 +3,11 @@ import path from 'path';
 import crypto from 'crypto';
 import mammoth from 'mammoth';
 import natural from 'natural';
+import { pipeline, env } from '@xenova/transformers';
+
+// Configure transformers to use local models (no remote calls)
+env.allowLocalModels = true;
+env.allowRemoteModels = true; // Allow downloading models once
 
 interface Document {
   id: string;
@@ -35,11 +40,33 @@ export class RAGStorage {
   private baseDir: string;
   private indexes: Map<string, Index> = new Map();
   private tfidf: any;
+  private embedder: any = null;
+  private tokenizer: any = null;
+  private embeddingModelPromise: Promise<void>;
 
   constructor(baseDir: string) {
     this.baseDir = baseDir;
     this.tfidf = new natural.TfIdf();
+    this.embeddingModelPromise = this.initializeEmbeddingModel();
     this.initialize();
+  }
+
+  private async initializeEmbeddingModel() {
+    try {
+      console.log('Loading embedding model (this may take a moment on first run)...');
+      // Use a small, efficient embedding model
+      this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+        quantized: true, // Use quantized version for speed
+      });
+      console.log('Embedding model loaded successfully');
+    } catch (error) {
+      console.error('Error loading embedding model:', error);
+      console.log('Will fall back to keyword-only search');
+    }
+  }
+
+  private async ensureEmbeddingModel() {
+    await this.embeddingModelPromise;
   }
 
   private async initialize() {
@@ -171,22 +198,44 @@ export class RAGStorage {
       // Extract text from document
       const text = await this.extractText(filepath, filename);
       
-      // Chunk the text
-      const chunks = this.chunkText(text);
+      // Chunk the text using semantic chunking
+      const chunks = await this.semanticChunkText(text);
       
-      // Create document
-      const document: Document = {
-        id: crypto.randomBytes(16).toString('hex'),
-        filename,
-        chunks: chunks.map((chunkText, i) => ({
+      // Ensure embedding model is loaded
+      await this.ensureEmbeddingModel();
+      
+      // Generate embeddings for chunks
+      const chunksWithEmbeddings: Chunk[] = [];
+      for (let i = 0; i < chunks.length; i++) {
+        const chunkText = chunks[i];
+        let embedding: number[] | undefined;
+        
+        if (this.embedder) {
+          try {
+            const result = await this.embedder(chunkText, { pooling: 'mean', normalize: true });
+            embedding = Array.from(result.data);
+          } catch (error) {
+            console.error('Error generating embedding:', error);
+          }
+        }
+        
+        chunksWithEmbeddings.push({
           id: `${crypto.randomBytes(8).toString('hex')}`,
           text: chunkText,
+          embedding,
           metadata: {
             chunkIndex: i,
             documentId: '',
             ...metadata
           }
-        })),
+        });
+      }
+      
+      // Create document
+      const document: Document = {
+        id: crypto.randomBytes(16).toString('hex'),
+        filename,
+        chunks: chunksWithEmbeddings,
         metadata,
         uploadedAt: new Date().toISOString()
       };
@@ -268,6 +317,52 @@ export class RAGStorage {
     }
   }
 
+  // Advanced semantic chunking that respects sentence boundaries
+  private async semanticChunkText(text: string, targetChunkSize: number = 512, maxChunkSize: number = 1024): Promise<string[]> {
+    // Use natural's sentence tokenizer for better chunking
+    const tokenizer = new natural.SentenceTokenizer();
+    const sentences = tokenizer.tokenize(text);
+    
+    if (!sentences || sentences.length === 0) {
+      // Fallback to simple word-based chunking
+      return this.chunkText(text, targetChunkSize);
+    }
+
+    const chunks: string[] = [];
+    let currentChunk = '';
+    let currentWordCount = 0;
+
+    for (const sentence of sentences) {
+      const sentenceWords = sentence.split(/\s+/).length;
+      
+      // If adding this sentence would exceed max chunk size, save current chunk
+      if (currentWordCount + sentenceWords > maxChunkSize && currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+        currentChunk = sentence;
+        currentWordCount = sentenceWords;
+      } 
+      // If we're at or above target size, start a new chunk
+      else if (currentWordCount >= targetChunkSize && currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+        currentChunk = sentence;
+        currentWordCount = sentenceWords;
+      } 
+      // Otherwise, add to current chunk
+      else {
+        currentChunk += (currentChunk.length > 0 ? ' ' : '') + sentence;
+        currentWordCount += sentenceWords;
+      }
+    }
+
+    // Add the last chunk
+    if (currentChunk.trim().length > 0) {
+      chunks.push(currentChunk.trim());
+    }
+
+    return chunks.length > 0 ? chunks : [text];
+  }
+
+  // Fallback simple chunking
   chunkText(text: string, chunkSize: number = 512, overlap: number = 128): string[] {
     const words = text.split(/\s+/);
     const chunks: string[] = [];
@@ -279,7 +374,25 @@ export class RAGStorage {
       }
     }
     
-    return chunks;
+    return chunks.length > 0 ? chunks : [text];
+  }
+
+  // Calculate cosine similarity between two vectors
+  private cosineSimilarity(a: number[], b: number[]): number {
+    if (!a || !b || a.length !== b.length) return 0;
+    
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    
+    if (normA === 0 || normB === 0) return 0;
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
   async query(indexName: string, query: string, k: number = 5, mode: 'vector' | 'keyword' | 'hybrid' = 'hybrid') {
@@ -289,84 +402,115 @@ export class RAGStorage {
     }
 
     try {
-      let results: any[] = [];
+      let keywordResults: any[] = [];
+      let vectorResults: any[] = [];
 
+      // Keyword search using TF-IDF
       if (mode === 'keyword' || mode === 'hybrid') {
-        // Keyword search using TF-IDF
-        const keywordResults: { score: number; metadata: any }[] = [];
+        const keywordScores: { score: number; metadata: any }[] = [];
         this.tfidf.tfidfs(query, (i: number, measure: number) => {
           const doc = this.tfidf.documents[i];
           if (doc && doc.__key && doc.__key.indexName === indexName) {
-            keywordResults.push({ score: measure, metadata: doc.__key });
+            keywordScores.push({ score: measure, metadata: doc.__key });
           }
         });
         
-        const topKeywordResults = keywordResults
+        const topKeywordScores = keywordScores
           .sort((a, b) => b.score - a.score)
           .slice(0, k);
 
         // Get the actual chunks
-        for (const result of topKeywordResults) {
+        for (const result of topKeywordScores) {
           const doc = index.documents.find(d => d.id === result.metadata.documentId);
           if (doc) {
             const chunk = doc.chunks.find(c => c.id === result.metadata.chunkId);
             if (chunk) {
-              results.push({
+              keywordResults.push({
                 text: chunk.text,
                 score: result.score,
                 document_name: doc.filename,
-                metadata: chunk.metadata
+                metadata: { ...chunk.metadata, search_type: 'keyword' }
               });
             }
           }
         }
       }
 
-      if (mode === 'vector' || (mode === 'hybrid' && results.length < k)) {
-        // For now, we'll use a simple similarity based on word overlap
-        // In production, you'd use proper embeddings
-        const queryWords = new Set(query.toLowerCase().split(/\s+/));
-        
-        const vectorResults: any[] = [];
-        for (const doc of index.documents) {
-          for (const chunk of doc.chunks) {
-            const chunkWords = new Set(chunk.text.toLowerCase().split(/\s+/));
-            const overlap = [...queryWords].filter(word => chunkWords.has(word)).length;
-            const score = overlap / Math.max(queryWords.size, chunkWords.size);
-            
-            if (score > 0) {
-              vectorResults.push({
-                text: chunk.text,
-                score,
-                document_name: doc.filename,
-                metadata: chunk.metadata
-              });
+      // Vector search using embeddings
+      if ((mode === 'vector' || mode === 'hybrid') && this.embedder) {
+        try {
+          // Generate embedding for query
+          await this.ensureEmbeddingModel();
+          const queryEmbeddingResult = await this.embedder(query, { pooling: 'mean', normalize: true });
+          const queryEmbedding = Array.from(queryEmbeddingResult.data);
+
+          const similarities: any[] = [];
+          
+          // Calculate similarity with all chunks
+          for (const doc of index.documents) {
+            for (const chunk of doc.chunks) {
+              if (chunk.embedding) {
+                const similarity = this.cosineSimilarity(queryEmbedding, chunk.embedding);
+                if (similarity > 0) {
+                  similarities.push({
+                    text: chunk.text,
+                    score: similarity,
+                    document_name: doc.filename,
+                    metadata: { ...chunk.metadata, search_type: 'vector' }
+                  });
+                }
+              }
             }
           }
+          
+          // Sort by similarity and take top k
+          vectorResults = similarities
+            .sort((a, b) => b.score - a.score)
+            .slice(0, k);
+        } catch (error) {
+          console.error('Error in vector search:', error);
+          // Fall back to keyword-only if vector search fails
         }
+      }
+
+      // Combine results for hybrid search
+      let finalResults: any[] = [];
+      
+      if (mode === 'hybrid') {
+        // Merge and deduplicate results, favoring higher scores
+        const resultMap = new Map<string, any>();
         
-        // Sort by score and take top k
-        vectorResults.sort((a, b) => b.score - a.score);
-        
-        if (mode === 'vector') {
-          results = vectorResults.slice(0, k);
-        } else {
-          // Hybrid - merge results
-          const seen = new Set(results.map(r => r.text));
-          for (const vr of vectorResults) {
-            if (!seen.has(vr.text) && results.length < k) {
-              results.push(vr);
-            }
+        // Add keyword results with weight
+        keywordResults.forEach(r => {
+          const key = r.text.substring(0, 100); // Use text prefix as key
+          if (!resultMap.has(key) || resultMap.get(key).score < r.score * 0.7) {
+            resultMap.set(key, { ...r, score: r.score * 0.7 });
           }
-        }
+        });
+        
+        // Add vector results with higher weight
+        vectorResults.forEach(r => {
+          const key = r.text.substring(0, 100);
+          if (!resultMap.has(key) || resultMap.get(key).score < r.score) {
+            resultMap.set(key, r);
+          }
+        });
+        
+        finalResults = Array.from(resultMap.values())
+          .sort((a, b) => b.score - a.score)
+          .slice(0, k);
+      } else if (mode === 'vector') {
+        finalResults = vectorResults;
+      } else {
+        finalResults = keywordResults;
       }
 
       return {
         success: true,
         query,
         mode,
-        results: results.slice(0, k),
-        total_results: results.slice(0, k).length
+        results: finalResults,
+        total_results: finalResults.length
       };
     } catch (error) {
       console.error('Error querying index:', error);
