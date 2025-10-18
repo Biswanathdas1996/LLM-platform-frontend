@@ -5,7 +5,7 @@ import { ChatInterface } from './ChatInterface';
 interface PlaygroundConfig {
   selectedModel: string;
   temperature: number;
-  maxTokens: number;
+  maxTokens: number | undefined;
   gpuLayers: number;
   selectedIndexes: string[];
 }
@@ -14,7 +14,7 @@ export function PlaygroundView() {
   const [config, setConfig] = useState<PlaygroundConfig>({
     selectedModel: '',
     temperature: 0.7,
-    maxTokens: 512,
+    maxTokens: undefined,
     gpuLayers: 40,
     selectedIndexes: [],
   });

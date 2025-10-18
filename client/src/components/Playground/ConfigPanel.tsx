@@ -12,7 +12,7 @@ import { X } from 'lucide-react';
 interface PlaygroundConfig {
   selectedModel: string;
   temperature: number;
-  maxTokens: number;
+  maxTokens: number | undefined;
   gpuLayers: number;
   selectedIndexes: string[];
 }
@@ -112,12 +112,16 @@ export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
         
         <div>
           <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Max Tokens
+            Max Tokens (Optional)
           </Label>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            Leave empty to use the model's full context limit
+          </p>
           <Input
             type="number"
-            value={config.maxTokens}
-            onChange={(e) => updateConfig({ maxTokens: parseInt(e.target.value) || 512 })}
+            value={config.maxTokens ?? ''}
+            onChange={(e) => updateConfig({ maxTokens: e.target.value ? parseInt(e.target.value) : undefined })}
+            placeholder="Auto (model default)"
             className="bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
           />
         </div>

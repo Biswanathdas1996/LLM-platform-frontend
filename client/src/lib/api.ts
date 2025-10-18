@@ -17,6 +17,7 @@ export interface GenerateRequest {
   n_gpu_layers?: number;
   n_batch?: number;
   temperature?: number;
+  max_tokens?: number;
 }
 
 export interface GenerateResponse {

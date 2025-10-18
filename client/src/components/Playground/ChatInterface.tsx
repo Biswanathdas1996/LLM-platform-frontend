@@ -18,7 +18,7 @@ interface Message {
 interface ChatInterfaceProps {
   selectedModel: string;
   temperature: number;
-  maxTokens: number;
+  maxTokens: number | undefined;
   gpuLayers: number;
   selectedIndexes: string[];
 }
@@ -97,13 +97,20 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
         }
       }
 
-      const response = await generateMutation.mutateAsync({
+      const generateRequest: any = {
         question: finalPrompt,
         model_name: selectedModel,
         temperature,
         n_batch: 512,
         n_gpu_layers: gpuLayers,
-      });
+      };
+
+      // Only include max_tokens if it's specified
+      if (maxTokens !== undefined) {
+        generateRequest.max_tokens = maxTokens;
+      }
+
+      const response = await generateMutation.mutateAsync(generateRequest);
 
       if (response.success) {
         const assistantMessage: Message = {
