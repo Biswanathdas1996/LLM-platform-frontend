@@ -126,12 +126,26 @@ export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
           <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
             GPU Layers
           </Label>
-          <Input
-            type="number"
-            value={config.gpuLayers}
-            onChange={(e) => updateConfig({ gpuLayers: parseInt(e.target.value) || 40 })}
-            className="bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-          />
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            Number of model layers to offload to GPU for acceleration. Higher values = faster but more VRAM usage.
+          </p>
+          <Select 
+            value={config.gpuLayers.toString()} 
+            onValueChange={(value) => updateConfig({ gpuLayers: parseInt(value) })}
+          >
+            <SelectTrigger className="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
+              <SelectValue placeholder="Select GPU layers..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">0 (CPU Only)</SelectItem>
+              <SelectItem value="10">10 (Low GPU)</SelectItem>
+              <SelectItem value="20">20 (Medium GPU)</SelectItem>
+              <SelectItem value="30">30 (High GPU)</SelectItem>
+              <SelectItem value="40">40 (Very High GPU)</SelectItem>
+              <SelectItem value="50">50 (Maximum GPU)</SelectItem>
+              <SelectItem value="-1">-1 (Auto - All Layers)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
