@@ -325,7 +325,7 @@ export class RAGStorage {
     
     if (!sentences || sentences.length === 0) {
       // Fallback to simple word-based chunking
-      return this.chunkText(text, targetChunkSize);
+      return this.chunkText(text, targetChunkSize, 128);
     }
 
     const chunks: string[] = [];
@@ -442,7 +442,7 @@ export class RAGStorage {
           // Generate embedding for query
           await this.ensureEmbeddingModel();
           const queryEmbeddingResult = await this.embedder(query, { pooling: 'mean', normalize: true });
-          const queryEmbedding = Array.from(queryEmbeddingResult.data);
+          const queryEmbedding = Array.from(queryEmbeddingResult.data) as number[];
 
           const similarities: any[] = [];
           

@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage,
   limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB limit
+    fileSize: 1024 * 1024 * 1024 // 1GB limit (effectively unlimited for most use cases)
   }
 });
 
@@ -111,7 +111,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Upload documents
-  app.post('/api/rag/upload', upload.array('files', 10), async (req: Request, res: Response) => {
+  app.post('/api/rag/upload', upload.array('files', 50), async (req: Request, res: Response) => {
     try {
       const files = req.files as Express.Multer.File[];
       const { index_name } = req.body;
