@@ -108,6 +108,7 @@ export interface RAGQueryRequest {
   query: string;
   k?: number;
   mode?: 'vector' | 'keyword' | 'hybrid';
+  min_score?: number;
 }
 
 export interface RAGQueryResult {

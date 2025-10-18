@@ -21,9 +21,12 @@ interface ChatInterfaceProps {
   maxTokens: number | undefined;
   gpuLayers: number;
   selectedIndexes: string[];
+  searchMode: 'hybrid' | 'vector' | 'keyword';
+  chunkCount: number;
+  minChunkScore: number;
 }
 
-export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers, selectedIndexes }: ChatInterfaceProps) {
+export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers, selectedIndexes, searchMode, chunkCount, minChunkScore }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -70,18 +73,19 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
           const ragResponse = await ragQueryMutation.mutateAsync({
             index_names: selectedIndexes,
             query: inputMessage,
-            k: 2,  // Optimized: Use top 2 most relevant chunks for best quality/speed balance
-            mode: 'hybrid',
+            k: chunkCount,  // Use configured chunk count
+            mode: searchMode,  // Use configured search mode (hybrid/vector/keyword)
+            min_score: minChunkScore,  // Use configured minimum relevance score
           });
 
           if (ragResponse.success && ragResponse.results.length > 0) {
             // Build highly optimized context from RAG results
-            // Only use results with good relevance scores (>50%)
-            const relevantResults = ragResponse.results.filter(r => r.score > 0.5);
+            // Backend already filtered by min_score, so use all results
+            const relevantResults = ragResponse.results;
             
             if (relevantResults.length > 0) {
               const context = relevantResults
-                .slice(0, 2)  // Limit to top 2 results
+                .slice(0, chunkCount)  // Limit to configured chunk count
                 .map((result, idx) => {
                   // Smart truncation: prefer complete sentences
                   let text = result.text;
@@ -102,8 +106,11 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
                 })
                 .join('\n\n');
 
-              // Ultra-compact prompt optimized for speed
-              finalPrompt = `Context:\n${context}\n\nQ: ${inputMessage}\n\nA (cite [1] or [2]):`;
+              // Build prompt with citations
+              const citations = relevantResults.length > 1 
+                ? `cite [${Array.from({length: Math.min(relevantResults.length, chunkCount)}, (_, i) => i + 1).join('], [')}]`
+                : 'cite [1]';
+              finalPrompt = `Context:\n${context}\n\nQ: ${inputMessage}\n\nA (${citations}):`;
             }
           }
         } catch (ragError) {

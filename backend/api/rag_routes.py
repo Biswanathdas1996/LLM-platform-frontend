@@ -232,6 +232,7 @@ def create_rag_blueprint(config) -> Blueprint:
             # Optional parameters
             k = data.get('k', 5)
             mode = data.get('mode', 'hybrid')  # 'vector', 'keyword', or 'hybrid'
+            min_score = data.get('min_score', 0.0)  # Minimum relevance score threshold
             
             if mode not in ['vector', 'keyword', 'hybrid']:
                 return jsonify({'error': 'mode must be one of: vector, keyword, hybrid'}), 400
@@ -240,7 +241,8 @@ def create_rag_blueprint(config) -> Blueprint:
                 index_name=index_name,
                 query=query,
                 k=k,
-                mode=mode
+                mode=mode,
+                min_score=min_score
             )
             
             if 'error' in result:
@@ -270,6 +272,7 @@ def create_rag_blueprint(config) -> Blueprint:
             # Optional parameters
             k = data.get('k', 5)
             mode = data.get('mode', 'hybrid')  # 'vector', 'keyword', or 'hybrid'
+            min_score = data.get('min_score', 0.0)  # Minimum relevance score threshold
             
             if mode not in ['vector', 'keyword', 'hybrid']:
                 return jsonify({'error': 'mode must be one of: vector, keyword, hybrid'}), 400
@@ -278,7 +281,8 @@ def create_rag_blueprint(config) -> Blueprint:
                 index_names=index_names,
                 query=query,
                 k=k,
-                mode=mode
+                mode=mode,
+                min_score=min_score
             )
             
             if 'error' in result:

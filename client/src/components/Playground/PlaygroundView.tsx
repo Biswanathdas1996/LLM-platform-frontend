@@ -8,6 +8,9 @@ interface PlaygroundConfig {
   maxTokens: number | undefined;
   gpuLayers: number;
   selectedIndexes: string[];
+  searchMode: 'hybrid' | 'vector' | 'keyword';
+  chunkCount: number;
+  minChunkScore: number;
 }
 
 export function PlaygroundView() {
@@ -17,6 +20,9 @@ export function PlaygroundView() {
     maxTokens: undefined,
     gpuLayers: 40,
     selectedIndexes: [],
+    searchMode: 'hybrid',
+    chunkCount: 3,
+    minChunkScore: 0.5,
   });
 
   return (

@@ -755,7 +755,7 @@ class RAGService:
             logger.error(f"Error uploading document: {e}")
             return {'error': str(e)}
     
-    def query(self, index_name: str, query: str, k: int = None, mode: str = 'hybrid') -> Dict[str, Any]:
+    def query(self, index_name: str, query: str, k: int = None, mode: str = 'hybrid', min_score: float = None) -> Dict[str, Any]:
         """
         Query documents in a specific index only
         Ensures results are strictly from the specified index
@@ -769,6 +769,10 @@ class RAGService:
         
         # Cap k at max_k
         k = min(k, self.max_k)
+        
+        # Use configured min_relevance_score if not specified
+        if min_score is None:
+            min_score = self.min_relevance_score
         
         start_time = time.time()
         
@@ -791,7 +795,7 @@ class RAGService:
                 query, 
                 k=k, 
                 mode=mode,
-                min_score=self.min_relevance_score,
+                min_score=min_score,
                 timeout=self.query_timeout
             )
             
@@ -850,7 +854,7 @@ class RAGService:
             logger.error(f"Error querying index {index_name}: {e}")
             return {'error': str(e), 'index_name': index_name}
     
-    def query_multiple_indexes(self, index_names: List[str], query: str, k: int = None, mode: str = 'hybrid') -> Dict[str, Any]:
+    def query_multiple_indexes(self, index_names: List[str], query: str, k: int = None, mode: str = 'hybrid', min_score: float = None) -> Dict[str, Any]:
         """
         Query multiple indexes and merge results by relevance score
         """
@@ -860,6 +864,10 @@ class RAGService:
         
         # Cap k at max_k
         k = min(k, self.max_k)
+        
+        # Use configured min_relevance_score if not specified
+        if min_score is None:
+            min_score = self.min_relevance_score
         
         start_time = time.time()
         all_results = []
@@ -872,7 +880,7 @@ class RAGService:
                 continue
             
             try:
-                result = self.query(index_name, query, k=k, mode=mode)
+                result = self.query(index_name, query, k=k, mode=mode, min_score=min_score)
                 if result.get('success') and result.get('results'):
                     all_results.extend(result['results'])
             except Exception as e:

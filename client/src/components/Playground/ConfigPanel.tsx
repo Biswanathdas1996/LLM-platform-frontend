@@ -15,6 +15,9 @@ interface PlaygroundConfig {
   maxTokens: number | undefined;
   gpuLayers: number;
   selectedIndexes: string[];
+  searchMode: 'hybrid' | 'vector' | 'keyword';
+  chunkCount: number;
+  minChunkScore: number;
 }
 
 interface ConfigPanelProps {
@@ -205,6 +208,82 @@ export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
               )}
             </SelectContent>
           </Select>
+
+          {/* RAG Search Configuration - Only show when indexes are selected */}
+          {config.selectedIndexes && config.selectedIndexes.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600 space-y-4">
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                Search Configuration
+              </p>
+              
+              {/* Search Mode */}
+              <div>
+                <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  Search Mode
+                </Label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Choose how to search for relevant documents
+                </p>
+                <Select 
+                  value={config.searchMode} 
+                  onValueChange={(value: 'hybrid' | 'vector' | 'keyword') => updateConfig({ searchMode: value })}
+                >
+                  <SelectTrigger className="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hybrid">Hybrid (Semantic + Keywords) - Recommended</SelectItem>
+                    <SelectItem value="vector">Vector (Semantic Only)</SelectItem>
+                    <SelectItem value="keyword">Keyword (Exact Match)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Chunk Count */}
+              <div>
+                <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  Chunk Count: {config.chunkCount}
+                </Label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Number of relevant document chunks to retrieve (1-10)
+                </p>
+                <Slider
+                  value={[config.chunkCount]}
+                  onValueChange={(value) => updateConfig({ chunkCount: value[0] })}
+                  max={10}
+                  min={1}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <span>1 (Focused)</span>
+                  <span>10 (Comprehensive)</span>
+                </div>
+              </div>
+
+              {/* Min Chunk Score */}
+              <div>
+                <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  Min Relevance Score: {(config.minChunkScore * 100).toFixed(0)}%
+                </Label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Minimum relevance score to include chunks (0-100%)
+                </p>
+                <Slider
+                  value={[config.minChunkScore]}
+                  onValueChange={(value) => updateConfig({ minChunkScore: value[0] })}
+                  max={1}
+                  min={0}
+                  step={0.05}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <span>0% (All results)</span>
+                  <span>100% (Perfect match)</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
