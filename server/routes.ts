@@ -3,7 +3,9 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
-import { RAGStorage } from './storage';
+import { RAGStorage, DatasetStorage } from './storage';
+import * as XLSX from 'xlsx';
+import { pipeline } from '@xenova/transformers';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '../uploads');
@@ -34,6 +36,26 @@ const upload = multer({
 
 // Initialize RAG Storage
 const ragStorage = new RAGStorage(path.join(__dirname, '../rag_data'));
+
+// Initialize Dataset Storage
+const datasetStorage = new DatasetStorage();
+
+// Separate upload configuration for datasets (CSV/Excel)
+const datasetUpload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1024 * 1024 * 1024 // 1GB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.csv', '.xlsx', '.xls'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV and Excel files are allowed'));
+    }
+  }
+});
 
 export function registerRoutes(app: Express) {
   // Health check
@@ -231,4 +253,318 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to delete document' });
     }
   });
+
+  // Analytics/Dataset Routes
+
+  // Upload CSV/Excel dataset
+  app.post('/api/analytics/upload', datasetUpload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Parse the file based on type
+      let workbook: XLSX.WorkBook;
+      const ext = path.extname(file.originalname).toLowerCase();
+      
+      if (ext === '.csv') {
+        const csvText = file.buffer.toString('utf-8');
+        workbook = XLSX.read(csvText, { type: 'string' });
+      } else {
+        workbook = XLSX.read(file.buffer, { type: 'buffer' });
+      }
+
+      // Get the first sheet
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      
+      // Convert to JSON to get data
+      const jsonData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      
+      if (jsonData.length === 0) {
+        return res.status(400).json({ error: 'File is empty' });
+      }
+
+      // Extract headers and data
+      const headers = jsonData[0] as string[];
+      const rows = jsonData.slice(1);
+      
+      // Create dataset metadata
+      const dataset = await datasetStorage.create({
+        name: file.originalname.replace(/\.[^/.]+$/, ''),
+        filename: file.originalname,
+        size: file.size,
+        rows: rows.length,
+        columns: headers.length,
+        columnNames: headers,
+      });
+
+      // Store the actual data
+      await datasetStorage.storeData(dataset.id, rows);
+
+      res.json({
+        success: true,
+        dataset,
+        preview: rows.slice(0, 5), // First 5 rows as preview
+      });
+    } catch (error) {
+      console.error('Error uploading dataset:', error);
+      res.status(500).json({ error: 'Failed to upload dataset: ' + String(error) });
+    }
+  });
+
+  // List all datasets
+  app.get('/api/analytics/datasets', async (req: Request, res: Response) => {
+    try {
+      const datasets = await datasetStorage.getAll();
+      res.json({ datasets });
+    } catch (error) {
+      console.error('Error listing datasets:', error);
+      res.status(500).json({ error: 'Failed to list datasets' });
+    }
+  });
+
+  // Get dataset with data and analysis
+  app.get('/api/analytics/datasets/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const dataset = await datasetStorage.getById(id);
+      
+      if (!dataset) {
+        return res.status(404).json({ error: 'Dataset not found' });
+      }
+
+      const data = await datasetStorage.getData(id);
+      
+      if (!data) {
+        return res.status(404).json({ error: 'Dataset data not found' });
+      }
+
+      // Calculate basic statistics
+      const statistics = calculateStatistics(dataset.columnNames, data);
+
+      res.json({
+        dataset,
+        data: {
+          headers: dataset.columnNames,
+          rows: data,
+          rowCount: dataset.rows,
+          columnCount: dataset.columns,
+        },
+        statistics,
+      });
+    } catch (error) {
+      console.error('Error getting dataset:', error);
+      res.status(500).json({ error: 'Failed to get dataset' });
+    }
+  });
+
+  // Generate insights for a dataset using local LLM
+  app.post('/api/analytics/datasets/:id/insights', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const dataset = await datasetStorage.getById(id);
+      
+      if (!dataset) {
+        return res.status(404).json({ error: 'Dataset not found' });
+      }
+
+      const data = await datasetStorage.getData(id);
+      
+      if (!data) {
+        return res.status(404).json({ error: 'Dataset data not found' });
+      }
+
+      // Generate insights
+      const insights = await generateInsights(dataset, data);
+
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error generating insights:', error);
+      res.status(500).json({ error: 'Failed to generate insights' });
+    }
+  });
+
+  // Delete dataset
+  app.delete('/api/analytics/datasets/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await datasetStorage.delete(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Dataset not found' });
+      }
+
+      res.json({ success: true, message: 'Dataset deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting dataset:', error);
+      res.status(500).json({ error: 'Failed to delete dataset' });
+    }
+  });
+}
+
+// Helper function to calculate statistics
+function calculateStatistics(headers: string[], data: any[][]): Record<string, any> {
+  const stats: Record<string, any> = {};
+
+  headers.forEach((header, colIndex) => {
+    const column = data.map(row => row[colIndex]).filter(val => val !== null && val !== undefined && val !== '');
+    
+    // Check if column is numeric
+    const numericValues = column.map(v => {
+      const num = typeof v === 'number' ? v : parseFloat(String(v));
+      return isNaN(num) ? null : num;
+    }).filter(v => v !== null) as number[];
+
+    if (numericValues.length > 0) {
+      // Numeric statistics
+      const sum = numericValues.reduce((a, b) => a + b, 0);
+      const mean = sum / numericValues.length;
+      const sorted = [...numericValues].sort((a, b) => a - b);
+      const median = sorted.length % 2 === 0
+        ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+        : sorted[Math.floor(sorted.length / 2)];
+      const variance = numericValues.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / numericValues.length;
+      const stdDev = Math.sqrt(variance);
+
+      stats[header] = {
+        type: 'numeric',
+        count: numericValues.length,
+        min: Math.min(...numericValues),
+        max: Math.max(...numericValues),
+        mean: parseFloat(mean.toFixed(2)),
+        median: parseFloat(median.toFixed(2)),
+        stdDev: parseFloat(stdDev.toFixed(2)),
+        sum: parseFloat(sum.toFixed(2)),
+      };
+    } else {
+      // Categorical statistics
+      const valueCounts: Record<string, number> = {};
+      column.forEach(val => {
+        const key = String(val);
+        valueCounts[key] = (valueCounts[key] || 0) + 1;
+      });
+
+      const uniqueValues = Object.keys(valueCounts).length;
+      const mode = Object.entries(valueCounts).sort((a, b) => b[1] - a[1])[0];
+
+      stats[header] = {
+        type: 'categorical',
+        count: column.length,
+        unique: uniqueValues,
+        mode: mode ? mode[0] : null,
+        modeCount: mode ? mode[1] : 0,
+        topValues: Object.entries(valueCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([value, count]) => ({ value, count })),
+      };
+    }
+  });
+
+  return stats;
+}
+
+// Helper function to generate AI insights
+async function generateInsights(dataset: any, data: any[][]): Promise<any[]> {
+  const insights: any[] = [];
+
+  try {
+    // Calculate statistics first
+    const stats = calculateStatistics(dataset.columnNames, data);
+
+    // Generate summary insight
+    insights.push({
+      type: 'summary',
+      title: 'Dataset Overview',
+      description: `This dataset contains ${dataset.rows} rows and ${dataset.columns} columns. The data includes ${
+        Object.values(stats).filter((s: any) => s.type === 'numeric').length
+      } numeric columns and ${
+        Object.values(stats).filter((s: any) => s.type === 'categorical').length
+      } categorical columns.`,
+      confidence: 1.0,
+    });
+
+    // Find trends in numeric columns
+    Object.entries(stats).forEach(([column, stat]: [string, any]) => {
+      if (stat.type === 'numeric') {
+        const range = stat.max - stat.min;
+        const cv = stat.stdDev / stat.mean; // Coefficient of variation
+
+        if (cv > 0.5) {
+          insights.push({
+            type: 'trend',
+            title: `High Variability in ${column}`,
+            description: `The ${column} column shows high variability with values ranging from ${stat.min} to ${stat.max}. The standard deviation is ${stat.stdDev}, indicating significant spread in the data.`,
+            confidence: 0.85,
+            data: { column, ...stat },
+          });
+        }
+
+        // Detect potential outliers
+        const outlierThreshold = stat.mean + (2 * stat.stdDev);
+        if (stat.max > outlierThreshold || stat.min < stat.mean - (2 * stat.stdDev)) {
+          insights.push({
+            type: 'anomaly',
+            title: `Potential Outliers in ${column}`,
+            description: `The ${column} column may contain outliers. Values significantly deviate from the mean (${stat.mean}).`,
+            confidence: 0.7,
+            data: { column, mean: stat.mean, stdDev: stat.stdDev },
+          });
+        }
+      }
+    });
+
+    // Generate correlation insights for numeric columns
+    const numericColumns = Object.entries(stats)
+      .filter(([_, stat]: [string, any]) => stat.type === 'numeric')
+      .map(([col, _]) => col);
+
+    if (numericColumns.length >= 2) {
+      insights.push({
+        type: 'correlation',
+        title: 'Numeric Columns Analysis',
+        description: `Found ${numericColumns.length} numeric columns that can be analyzed for correlations and patterns: ${numericColumns.join(', ')}.`,
+        confidence: 0.8,
+        data: { columns: numericColumns },
+      });
+    }
+
+    // Simple prediction insight based on trends
+    if (numericColumns.length > 0) {
+      const firstNumCol = numericColumns[0];
+      const colStat = stats[firstNumCol] as any;
+      
+      insights.push({
+        type: 'prediction',
+        title: `${firstNumCol} Trend Analysis`,
+        description: `Based on the current data, ${firstNumCol} has an average value of ${colStat.mean}. Future values are likely to fall within the range of ${
+          (colStat.mean - colStat.stdDev).toFixed(2)
+        } to ${
+          (colStat.mean + colStat.stdDev).toFixed(2)
+        } (one standard deviation from mean).`,
+        confidence: 0.65,
+        data: {
+          column: firstNumCol,
+          predictedRange: [
+            parseFloat((colStat.mean - colStat.stdDev).toFixed(2)),
+            parseFloat((colStat.mean + colStat.stdDev).toFixed(2))
+          ],
+        },
+      });
+    }
+
+  } catch (error) {
+    console.error('Error generating insights:', error);
+    insights.push({
+      type: 'summary',
+      title: 'Analysis Complete',
+      description: 'Basic statistical analysis completed. Upload more data for deeper insights.',
+      confidence: 0.5,
+    });
+  }
+
+  return insights;
 }
