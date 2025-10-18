@@ -411,7 +411,7 @@ export default function BYOD() {
                       <Card key={index.name}>
                         <CardContent className="pt-6">
                           <div className="flex items-center justify-between">
-                            <div>
+                            <div className="flex-1">
                               <h4 className="font-semibold" data-testid={`index-name-${index.name}`}>
                                 {index.name}
                               </h4>
@@ -420,6 +420,26 @@ export default function BYOD() {
                                 <span>{index.stats.total_chunks} chunks</span>
                                 <span>{(index.stats.total_size / 1024).toFixed(1)} KB</span>
                               </div>
+                              
+                              {/* Display document names */}
+                              {index.documents && index.documents.length > 0 && (
+                                <div className="mt-3 space-y-1">
+                                  <p className="text-xs font-medium text-muted-foreground">Documents:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {index.documents.map((docName, idx) => (
+                                      <Badge 
+                                        key={idx} 
+                                        variant="outline" 
+                                        className="text-xs"
+                                        data-testid={`doc-${index.name}-${idx}`}
+                                      >
+                                        <FileText className="w-3 h-3 mr-1" />
+                                        {docName}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <Button
                               variant="destructive"

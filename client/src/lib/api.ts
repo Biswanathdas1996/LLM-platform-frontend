@@ -102,6 +102,32 @@ export interface ExternalLogsResponse {
   error_logs: ExternalLogEntry[];
 }
 
+export interface RAGQueryRequest {
+  index_names: string[];
+  query: string;
+  k?: number;
+  mode?: 'vector' | 'keyword' | 'hybrid';
+}
+
+export interface RAGQueryResult {
+  text: string;
+  score: number;
+  document_name: string;
+  chunk_id: number;
+  keywords: string[];
+  index_name: string;
+  metadata: any;
+}
+
+export interface RAGQueryResponse {
+  success: boolean;
+  query: string;
+  results: RAGQueryResult[];
+  mode: string;
+  total_results: number;
+  error?: string;
+}
+
 export class LocalLLMAPI {
   private baseURL: string;
 
@@ -197,6 +223,13 @@ export class LocalLLMAPI {
 
   async getPerformanceMetrics(): Promise<PerformanceMetrics> {
     return this.makeRequest<PerformanceMetrics>('/api/v1/performance');
+  }
+
+  async queryRAG(request: RAGQueryRequest): Promise<RAGQueryResponse> {
+    return this.makeRequest<RAGQueryResponse>('/api/rag/query-multiple', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
   }
 }
 

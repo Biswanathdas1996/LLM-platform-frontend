@@ -5,12 +5,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { useModels } from '@/hooks/useLocalAPI';
+import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 interface PlaygroundConfig {
   selectedModel: string;
   temperature: number;
   maxTokens: number;
   gpuLayers: number;
+  selectedIndexes: string[];
 }
 
 interface ConfigPanelProps {
@@ -20,9 +24,33 @@ interface ConfigPanelProps {
 
 export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
   const { data: modelsData } = useModels();
+  
+  // Fetch available RAG indexes
+  const { data: indexesData } = useQuery<{ indexes: Array<{ name: string; stats: any }> }>({
+    queryKey: ['/api/rag/indexes'],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:5000/api/rag/indexes');
+      if (!response.ok) throw new Error('Failed to fetch indexes');
+      return response.json();
+    },
+    retry: 0,
+  });
 
   const updateConfig = (updates: Partial<PlaygroundConfig>) => {
     onConfigChange({ ...config, ...updates });
+  };
+
+  const handleIndexToggle = (indexName: string) => {
+    const currentIndexes = config.selectedIndexes || [];
+    if (currentIndexes.includes(indexName)) {
+      updateConfig({ selectedIndexes: currentIndexes.filter(i => i !== indexName) });
+    } else {
+      updateConfig({ selectedIndexes: [...currentIndexes, indexName] });
+    }
+  };
+
+  const removeIndex = (indexName: string) => {
+    updateConfig({ selectedIndexes: config.selectedIndexes.filter(i => i !== indexName) });
   };
 
   return (
@@ -104,6 +132,61 @@ export function ConfigPanel({ config, onConfigChange }: ConfigPanelProps) {
             onChange={(e) => updateConfig({ gpuLayers: parseInt(e.target.value) || 40 })}
             className="bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
           />
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Document Indexes (Optional)
+          </Label>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+            Select indexes to enhance responses with document context
+          </p>
+          
+          {/* Selected indexes badges */}
+          {config.selectedIndexes && config.selectedIndexes.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {config.selectedIndexes.map((indexName) => (
+                <Badge 
+                  key={indexName}
+                  variant="secondary"
+                  className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 flex items-center gap-1"
+                >
+                  {indexName}
+                  <X 
+                    className="h-3 w-3 cursor-pointer hover:text-red-600" 
+                    onClick={() => removeIndex(indexName)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+          
+          {/* Index selection dropdown */}
+          <Select 
+            value="" 
+            onValueChange={handleIndexToggle}
+          >
+            <SelectTrigger className="w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
+              <SelectValue placeholder="Select indexes..." />
+            </SelectTrigger>
+            <SelectContent>
+              {indexesData?.indexes && indexesData.indexes.length > 0 ? (
+                indexesData.indexes.map((index) => (
+                  <SelectItem 
+                    key={index.name} 
+                    value={index.name}
+                    disabled={config.selectedIndexes?.includes(index.name)}
+                  >
+                    {index.name} ({index.stats?.total_documents || 0} docs)
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-indexes" disabled>
+                  No indexes available
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
     </Card>

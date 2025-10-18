@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, GenerateRequest } from '@/lib/api';
+import { api, GenerateRequest, RAGQueryRequest } from '@/lib/api';
 
 export function useHealth() {
   return useQuery({
@@ -96,5 +96,11 @@ export function usePerformanceMetrics() {
     refetchInterval: 15000, // Refetch every 15 seconds
     retry: 0,
     staleTime: 5000, // Cache for 5 seconds
+  });
+}
+
+export function useRAGQuery() {
+  return useMutation({
+    mutationFn: (request: RAGQueryRequest) => api.queryRAG(request),
   });
 }

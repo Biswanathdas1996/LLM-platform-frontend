@@ -62,6 +62,7 @@ export interface RAGIndex {
     total_chunks: number;
     total_size: number;
   };
+  documents: string[]; // Array of document filenames in this index
 }
 
 export interface RAGDocument {

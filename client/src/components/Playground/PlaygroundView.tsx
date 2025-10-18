@@ -7,6 +7,7 @@ interface PlaygroundConfig {
   temperature: number;
   maxTokens: number;
   gpuLayers: number;
+  selectedIndexes: string[];
 }
 
 export function PlaygroundView() {
@@ -15,6 +16,7 @@ export function PlaygroundView() {
     temperature: 0.7,
     maxTokens: 512,
     gpuLayers: 40,
+    selectedIndexes: [],
   });
 
   return (

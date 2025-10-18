@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Loader2 } from 'lucide-react';
+import { Send, User, Bot, Loader2, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useGenerate } from '@/hooks/useLocalAPI';
+import { useGenerate, useRAGQuery } from '@/hooks/useLocalAPI';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface Message {
@@ -20,13 +20,15 @@ interface ChatInterfaceProps {
   temperature: number;
   maxTokens: number;
   gpuLayers: number;
+  selectedIndexes: string[];
 }
 
-export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers }: ChatInterfaceProps) {
+export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers, selectedIndexes }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const generateMutation = useGenerate();
+  const ragQueryMutation = useRAGQuery();
   const { addNotification } = useNotifications();
 
   const scrollToBottom = () => {
@@ -60,8 +62,44 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
     setInputMessage('');
 
     try {
+      let finalPrompt = inputMessage;
+      
+      // If indexes are selected, query RAG for context
+      if (selectedIndexes && selectedIndexes.length > 0) {
+        try {
+          const ragResponse = await ragQueryMutation.mutateAsync({
+            index_names: selectedIndexes,
+            query: inputMessage,
+            k: 5,
+            mode: 'hybrid',
+          });
+
+          if (ragResponse.success && ragResponse.results.length > 0) {
+            // Build context from RAG results
+            const context = ragResponse.results
+              .map((result, idx) => 
+                `[${idx + 1}] From "${result.document_name}" (relevance: ${(result.score * 100).toFixed(1)}%):\n${result.text}`
+              )
+              .join('\n\n');
+
+            // Enhance the prompt with RAG context
+            finalPrompt = `You are a helpful assistant. Answer the user's question based on the following context from the documents. If the context doesn't contain relevant information, you can use your general knowledge but mention that.
+
+Context from documents:
+${context}
+
+User's question: ${inputMessage}
+
+Please provide a helpful answer:`;
+          }
+        } catch (ragError) {
+          console.warn('RAG query failed, proceeding without context:', ragError);
+          // Continue without RAG context if it fails
+        }
+      }
+
       const response = await generateMutation.mutateAsync({
-        question: inputMessage,
+        question: finalPrompt,
         model_name: selectedModel,
         temperature,
         n_batch: 512,
@@ -94,8 +132,14 @@ export function ChatInterface({ selectedModel, temperature, maxTokens, gpuLayers
   return (
     <Card className="lg:col-span-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col h-[600px]">
       <CardHeader className="border-b border-slate-200 dark:border-slate-700">
-        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white">
-          Chat
+        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-white flex items-center justify-between">
+          <span>Chat</span>
+          {selectedIndexes && selectedIndexes.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-normal">
+              <BookOpen className="h-4 w-4" />
+              <span>RAG Context: {selectedIndexes.length} {selectedIndexes.length === 1 ? 'index' : 'indexes'}</span>
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
       

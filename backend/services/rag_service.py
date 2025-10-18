@@ -13,7 +13,11 @@ import re
 from collections import Counter
 import math
 
-# Document processing
+# Document processing with Docling
+from docling.document_converter import DocumentConverter
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.base_models import InputFormat
+from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
 import PyPDF2
 import docx
 from bs4 import BeautifulSoup
@@ -25,9 +29,10 @@ class TextChunker:
     """Advanced text chunking with overlap and smart splitting"""
     
     @staticmethod
-    def chunk_text(text: str, chunk_size: int = 512, overlap: int = 100) -> List[Dict[str, Any]]:
+    def chunk_text(text: str, chunk_size: int = 256, overlap: int = 50) -> List[Dict[str, Any]]:
         """
-        Split text into chunks with overlap
+        Split text into smaller chunks with overlap for better retrieval
+        Default chunk_size reduced to 256 words for more granular retrieval
         """
         chunks = []
         sentences = TextChunker._split_sentences(text)
@@ -42,12 +47,17 @@ class TextChunker:
             # If adding this sentence exceeds chunk size, save current chunk
             if current_size + sentence_size > chunk_size and current_chunk:
                 chunk_text = ' '.join(current_chunk)
+                
+                # Extract keywords for this chunk
+                keywords = TextChunker._extract_keywords(chunk_text)
+                
                 chunks.append({
                     'id': chunk_id,
                     'text': chunk_text,
                     'start_sentence': i - len(current_chunk),
                     'end_sentence': i - 1,
-                    'word_count': current_size
+                    'word_count': current_size,
+                    'keywords': keywords  # Add keywords for search
                 })
                 
                 # Create overlap by keeping last few sentences
@@ -61,12 +71,16 @@ class TextChunker:
         
         # Add the last chunk
         if current_chunk:
+            chunk_text = ' '.join(current_chunk)
+            keywords = TextChunker._extract_keywords(chunk_text)
+            
             chunks.append({
                 'id': chunk_id,
-                'text': ' '.join(current_chunk),
+                'text': chunk_text,
                 'start_sentence': len(sentences) - len(current_chunk),
                 'end_sentence': len(sentences) - 1,
-                'word_count': current_size
+                'word_count': current_size,
+                'keywords': keywords
             })
         
         return chunks
@@ -77,6 +91,39 @@ class TextChunker:
         # Simple sentence splitting - can be improved with NLTK
         sentences = re.split(r'(?<=[.!?])\s+', text)
         return [s.strip() for s in sentences if s.strip()]
+    
+    @staticmethod
+    def _extract_keywords(text: str, top_n: int = 10) -> List[str]:
+        """
+        Extract keywords from text using simple TF-IDF-like approach
+        Returns top_n most relevant keywords
+        """
+        # Tokenize and clean
+        words = re.findall(r'\b\w+\b', text.lower())
+        
+        # Remove common stop words
+        stop_words = {
+            'the', 'is', 'at', 'which', 'on', 'a', 'an', 'and', 'or', 'but',
+            'in', 'with', 'to', 'for', 'of', 'as', 'by', 'that', 'this',
+            'it', 'from', 'be', 'are', 'was', 'were', 'been', 'have', 'has',
+            'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should',
+            'may', 'might', 'can', 'shall', 'i', 'you', 'he', 'she', 'we',
+            'they', 'what', 'when', 'where', 'who', 'how', 'not', 'no', 'yes'
+        }
+        
+        # Filter words
+        filtered_words = [
+            w for w in words 
+            if w not in stop_words and len(w) > 2  # Remove short words
+        ]
+        
+        # Count word frequencies
+        word_freq = Counter(filtered_words)
+        
+        # Get top keywords
+        keywords = [word for word, count in word_freq.most_common(top_n)]
+        
+        return keywords
     
     @staticmethod
     def _calculate_overlap(sentences: List[str], overlap_size: int) -> List[str]:
@@ -236,7 +283,7 @@ class VectorStore:
         return results
     
     def _keyword_search(self, query: str, k: int) -> List[Tuple[Dict, float]]:
-        """Keyword-based search"""
+        """Keyword-based search with enhanced keyword matching"""
         query_words = set(self.embedder._tokenize(query))
         
         # Score documents based on keyword matches
@@ -245,6 +292,15 @@ class VectorStore:
             if word in self.text_index:
                 for doc_id in self.text_index[word]:
                     doc_scores[doc_id] += 1
+        
+        # Boost scores for documents with matching metadata keywords
+        for doc_id, metadata in enumerate(self.metadata):
+            if 'keywords' in metadata:
+                doc_keywords = set(metadata['keywords'])
+                keyword_matches = len(query_words & doc_keywords)
+                if keyword_matches > 0:
+                    # Boost score for keyword matches
+                    doc_scores[doc_id] += keyword_matches * 2
         
         # Normalize scores
         max_score = max(doc_scores.values()) if doc_scores else 1
@@ -327,34 +383,73 @@ class VectorStore:
 
 
 class DocumentProcessor:
-    """Process various document formats"""
+    """Process various document formats using Docling for better extraction"""
     
-    @staticmethod
-    def process_file(filepath: str, filename: str) -> str:
-        """Extract text from various file formats"""
+    def __init__(self):
+        """Initialize Docling document converter"""
+        # Configure Docling pipeline for PDF processing
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.do_ocr = True  # Enable OCR for scanned documents
+        pipeline_options.do_table_structure = True  # Extract table structures
+        
+        # Initialize converter with options (no backend specification needed - auto-detected)
+        self.converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: pipeline_options,
+            }
+        )
+    
+    def process_file(self, filepath: str, filename: str) -> str:
+        """Extract text from various file formats using Docling"""
         ext = os.path.splitext(filename)[1].lower()
         
         try:
-            if ext == '.pdf':
-                return DocumentProcessor._process_pdf(filepath)
-            elif ext in ['.docx', '.doc']:
-                return DocumentProcessor._process_docx(filepath)
+            # Use Docling for PDF and DOCX files (better extraction)
+            if ext in ['.pdf', '.docx', '.doc', '.pptx', '.ppt']:
+                return self._process_with_docling(filepath)
             elif ext == '.txt':
-                return DocumentProcessor._process_txt(filepath)
+                return self._process_txt(filepath)
             elif ext == '.md':
-                return DocumentProcessor._process_markdown(filepath)
+                return self._process_markdown(filepath)
             elif ext in ['.html', '.htm']:
-                return DocumentProcessor._process_html(filepath)
+                return self._process_html(filepath)
             else:
                 # Try to read as text
-                return DocumentProcessor._process_txt(filepath)
+                return self._process_txt(filepath)
         except Exception as e:
             logger.error(f"Error processing file {filename}: {e}")
+            # Fallback to legacy methods if Docling fails
+            try:
+                if ext == '.pdf':
+                    return self._process_pdf_legacy(filepath)
+                elif ext in ['.docx', '.doc']:
+                    return self._process_docx_legacy(filepath)
+            except Exception as fallback_error:
+                logger.error(f"Fallback processing also failed: {fallback_error}")
             raise
     
-    @staticmethod
-    def _process_pdf(filepath: str) -> str:
-        """Extract text from PDF"""
+    def _process_with_docling(self, filepath: str) -> str:
+        """
+        Use Docling to extract text from document
+        Docling provides better quality extraction for PDFs, Word docs, and PowerPoints
+        """
+        try:
+            # Convert document using Docling
+            result = self.converter.convert(filepath)
+            
+            # Extract markdown text (Docling converts to markdown)
+            markdown_text = result.document.export_to_markdown()
+            
+            # You can also extract structured content
+            # For now, we'll use the markdown representation
+            return markdown_text
+            
+        except Exception as e:
+            logger.error(f"Docling processing failed: {e}")
+            raise
+    
+    def _process_pdf_legacy(self, filepath: str) -> str:
+        """Legacy PDF extraction using PyPDF2 (fallback)"""
         text = []
         with open(filepath, 'rb') as file:
             pdf_reader = PyPDF2.PdfReader(file)
@@ -362,9 +457,8 @@ class DocumentProcessor:
                 text.append(page.extract_text())
         return '\n'.join(text)
     
-    @staticmethod
-    def _process_docx(filepath: str) -> str:
-        """Extract text from DOCX"""
+    def _process_docx_legacy(self, filepath: str) -> str:
+        """Legacy DOCX extraction using python-docx (fallback)"""
         doc = docx.Document(filepath)
         text = []
         for paragraph in doc.paragraphs:
@@ -406,7 +500,11 @@ class RAGService:
         self.storage_path = storage_path
         self.indexes = {}  # Multiple indexes for different document collections
         self.chunker = TextChunker()
+        
+        # Initialize DocumentProcessor with Docling
+        logger.info("Initializing document processor with Docling...")
         self.processor = DocumentProcessor()
+        logger.info("Document processor initialized successfully")
         
         # Create storage directory
         os.makedirs(storage_path, exist_ok=True)
@@ -460,6 +558,7 @@ class RAGService:
                     'document_name': filename,
                     'chunk_id': chunk['id'],
                     'word_count': chunk['word_count'],
+                    'keywords': chunk.get('keywords', []),  # Include keywords
                     **(metadata or {})
                 }
                 chunk_metadatas.append(chunk_metadata)
@@ -499,45 +598,118 @@ class RAGService:
             return {'error': str(e)}
     
     def query(self, index_name: str, query: str, k: int = 5, mode: str = 'hybrid') -> Dict[str, Any]:
-        """Query documents in an index"""
+        """
+        Query documents in a specific index only
+        Ensures results are strictly from the specified index
+        """
         if index_name not in self.indexes:
             return {'error': f'Index {index_name} not found'}
         
         try:
+            # Get vector store for THIS index only
             vector_store = self.indexes[index_name]['vector_store']
+            
+            # Verify the vector store has documents
+            if not vector_store.vectors:
+                return {
+                    'success': True,
+                    'query': query,
+                    'results': [],
+                    'mode': mode,
+                    'message': f'No documents in index {index_name}'
+                }
+            
+            # Search only within this index's vector store
             results = vector_store.search(query, k=k, mode=mode)
             
-            # Format results
+            # Format results and add index verification
             formatted_results = []
             for metadata, score in results:
-                formatted_results.append({
-                    'text': metadata['text'],
-                    'score': float(score),
-                    'document_name': metadata.get('document_name', 'Unknown'),
-                    'chunk_id': metadata.get('chunk_id', 0),
-                    'metadata': {k: v for k, v in metadata.items() 
-                               if k not in ['text', 'doc_id', 'document_name', 'chunk_id']}
-                })
+                # Double-check that this result belongs to the current index
+                # by verifying document_id exists in this index's documents
+                doc_id = metadata.get('document_id')
+                index_data = self.indexes[index_name]
+                
+                # Verify document belongs to this index
+                doc_exists = any(doc['id'] == doc_id for doc in index_data['documents'])
+                
+                if doc_exists:
+                    formatted_results.append({
+                        'text': metadata['text'],
+                        'score': float(score),
+                        'document_name': metadata.get('document_name', 'Unknown'),
+                        'chunk_id': metadata.get('chunk_id', 0),
+                        'keywords': metadata.get('keywords', []),
+                        'index_name': index_name,  # Add index name to verify source
+                        'metadata': {k: v for k, v in metadata.items() 
+                                   if k not in ['text', 'doc_id', 'document_name', 'chunk_id', 'keywords']}
+                    })
+                else:
+                    logger.warning(f"Result with doc_id {doc_id} doesn't belong to index {index_name}")
             
             return {
                 'success': True,
                 'query': query,
+                'index_name': index_name,  # Include index name in response
                 'results': formatted_results,
-                'mode': mode
+                'mode': mode,
+                'total_results': len(formatted_results)
             }
             
         except Exception as e:
-            logger.error(f"Error querying index: {e}")
-            return {'error': str(e)}
+            logger.error(f"Error querying index {index_name}: {e}")
+            return {'error': str(e), 'index_name': index_name}
+    
+    def query_multiple_indexes(self, index_names: List[str], query: str, k: int = 5, mode: str = 'hybrid') -> Dict[str, Any]:
+        """
+        Query multiple indexes and merge results by relevance score
+        """
+        all_results = []
+        errors = []
+        
+        # Query each index
+        for index_name in index_names:
+            if index_name not in self.indexes:
+                errors.append(f'Index {index_name} not found')
+                continue
+            
+            try:
+                result = self.query(index_name, query, k=k, mode=mode)
+                if result.get('success') and result.get('results'):
+                    all_results.extend(result['results'])
+            except Exception as e:
+                errors.append(f'Error querying {index_name}: {str(e)}')
+                logger.error(f"Error querying index {index_name}: {e}")
+        
+        # Sort all results by score (descending)
+        all_results.sort(key=lambda x: x['score'], reverse=True)
+        
+        # Take top k results
+        top_results = all_results[:k]
+        
+        return {
+            'success': True,
+            'query': query,
+            'index_names': index_names,
+            'results': top_results,
+            'mode': mode,
+            'total_results': len(top_results),
+            'queried_indexes': len([name for name in index_names if name in self.indexes]),
+            'errors': errors if errors else None
+        }
     
     def list_indexes(self) -> Dict[str, Any]:
-        """List all available indexes"""
+        """List all available indexes with document names"""
         index_list = []
         for name, index_data in self.indexes.items():
+            # Extract document names from the index
+            document_names = [doc['filename'] for doc in index_data['documents']]
+            
             index_list.append({
                 'name': name,
                 'created_at': index_data['created_at'],
-                'stats': index_data['stats']
+                'stats': index_data['stats'],
+                'documents': document_names  # Add list of document names
             })
         
         return {'indexes': index_list}
@@ -568,6 +740,112 @@ class RAGService:
             'created_at': index_data['created_at'],
             'stats': index_data['stats'],
             'documents': index_data['documents']
+        }
+    
+    def list_documents(self, index_name: str) -> Dict[str, Any]:
+        """
+        List all documents in an index with their metadata
+        Returns a simplified view without full content
+        """
+        if index_name not in self.indexes:
+            return {'error': f'Index {index_name} not found'}
+        
+        index_data = self.indexes[index_name]
+        documents = []
+        
+        for doc in index_data['documents']:
+            documents.append({
+                'id': doc['id'],
+                'filename': doc['filename'],
+                'size': doc['size'],
+                'chunks': doc['chunks'],
+                'uploaded_at': doc['uploaded_at'],
+                'metadata': doc.get('metadata', {})
+            })
+        
+        return {
+            'success': True,
+            'index_name': index_name,
+            'total_documents': len(documents),
+            'documents': documents
+        }
+    
+    def get_document_details(self, index_name: str, document_id: str) -> Dict[str, Any]:
+        """
+        Get detailed information about a specific document
+        """
+        if index_name not in self.indexes:
+            return {'error': f'Index {index_name} not found'}
+        
+        index_data = self.indexes[index_name]
+        
+        # Find the document
+        document = None
+        for doc in index_data['documents']:
+            if doc['id'] == document_id:
+                document = doc
+                break
+        
+        if not document:
+            return {'error': f'Document {document_id} not found in index {index_name}'}
+        
+        # Get all chunks for this document from vector store
+        chunks = []
+        for metadata in index_data['vector_store'].metadata:
+            if metadata.get('document_id') == document_id:
+                chunks.append({
+                    'chunk_id': metadata.get('chunk_id', 0),
+                    'text_preview': metadata.get('text', '')[:200] + '...',
+                    'word_count': metadata.get('word_count', 0),
+                    'keywords': metadata.get('keywords', [])
+                })
+        
+        return {
+            'success': True,
+            'document': {
+                'id': document['id'],
+                'filename': document['filename'],
+                'filepath': document.get('filepath', ''),
+                'size': document['size'],
+                'chunks': document['chunks'],
+                'uploaded_at': document['uploaded_at'],
+                'metadata': document.get('metadata', {})
+            },
+            'chunks': chunks
+        }
+    
+    def delete_document(self, index_name: str, document_id: str) -> Dict[str, Any]:
+        """
+        Delete a specific document from an index
+        Note: This doesn't remove vectors from the store (would need rebuild)
+        """
+        if index_name not in self.indexes:
+            return {'error': f'Index {index_name} not found'}
+        
+        index_data = self.indexes[index_name]
+        
+        # Find and remove the document
+        document = None
+        for i, doc in enumerate(index_data['documents']):
+            if doc['id'] == document_id:
+                document = index_data['documents'].pop(i)
+                break
+        
+        if not document:
+            return {'error': f'Document {document_id} not found in index {index_name}'}
+        
+        # Update stats
+        index_data['stats']['total_documents'] -= 1
+        index_data['stats']['total_chunks'] -= document['chunks']
+        index_data['stats']['total_size'] -= document['size']
+        
+        # Save index
+        self._save_index(index_name)
+        
+        return {
+            'success': True,
+            'message': f'Document {document["filename"]} deleted',
+            'document_id': document_id
         }
     
     def _save_index(self, index_name: str):

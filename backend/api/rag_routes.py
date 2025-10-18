@@ -87,6 +87,51 @@ def create_rag_blueprint(config) -> Blueprint:
             logger.error(f"Error deleting index: {e}")
             return jsonify({'error': str(e)}), 500
     
+    @rag.route('/indexes/<index_name>/documents', methods=['GET'])
+    def list_documents(index_name):
+        """List all documents in an index"""
+        try:
+            result = rag_service.list_documents(index_name)
+            
+            if 'error' in result:
+                return jsonify(result), 404
+            
+            return jsonify(result), 200
+            
+        except Exception as e:
+            logger.error(f"Error listing documents: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @rag.route('/indexes/<index_name>/documents/<document_id>', methods=['GET'])
+    def get_document_details(index_name, document_id):
+        """Get detailed information about a specific document"""
+        try:
+            result = rag_service.get_document_details(index_name, document_id)
+            
+            if 'error' in result:
+                return jsonify(result), 404
+            
+            return jsonify(result), 200
+            
+        except Exception as e:
+            logger.error(f"Error getting document details: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @rag.route('/indexes/<index_name>/documents/<document_id>', methods=['DELETE'])
+    def delete_document(index_name, document_id):
+        """Delete a specific document from an index"""
+        try:
+            result = rag_service.delete_document(index_name, document_id)
+            
+            if 'error' in result:
+                return jsonify(result), 404
+            
+            return jsonify(result), 200
+            
+        except Exception as e:
+            logger.error(f"Error deleting document: {e}")
+            return jsonify({'error': str(e)}), 500
+    
     @rag.route('/upload', methods=['POST'])
     def upload_documents():
         """Upload documents to an index"""
@@ -205,6 +250,44 @@ def create_rag_blueprint(config) -> Blueprint:
             
         except Exception as e:
             logger.error(f"Error querying documents: {e}")
+            return jsonify({'error': str(e)}), 500
+    
+    @rag.route('/query-multiple', methods=['POST'])
+    def query_multiple_indexes():
+        """Query multiple indexes and return merged results"""
+        try:
+            data = request.get_json()
+            
+            index_names = data.get('index_names', [])
+            query = data.get('query')
+            
+            if not index_names or not query:
+                return jsonify({'error': 'index_names (array) and query are required'}), 400
+            
+            if not isinstance(index_names, list):
+                return jsonify({'error': 'index_names must be an array'}), 400
+            
+            # Optional parameters
+            k = data.get('k', 5)
+            mode = data.get('mode', 'hybrid')  # 'vector', 'keyword', or 'hybrid'
+            
+            if mode not in ['vector', 'keyword', 'hybrid']:
+                return jsonify({'error': 'mode must be one of: vector, keyword, hybrid'}), 400
+            
+            result = rag_service.query_multiple_indexes(
+                index_names=index_names,
+                query=query,
+                k=k,
+                mode=mode
+            )
+            
+            if 'error' in result:
+                return jsonify(result), 400
+            
+            return jsonify(result), 200
+            
+        except Exception as e:
+            logger.error(f"Error querying multiple indexes: {e}")
             return jsonify({'error': str(e)}), 500
     
     @rag.route('/health', methods=['GET'])

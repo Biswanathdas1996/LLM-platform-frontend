@@ -180,16 +180,24 @@ class APILogger:
     def _teardown(self, exception):
         """Handle request teardown and log any exceptions."""
         if exception is not None:
-            api_data = {
-                'request_id': getattr(g, 'request_id', 'unknown'),
-                'method': request.method,
-                'url': request.url,
-                'endpoint': request.endpoint,
-                'exception_type': type(exception).__name__,
-                'exception_message': str(exception),
-                'type': 'exception'
-            }
-            self.log_error("Unhandled exception during request", api_data, exc_info=True)
+            try:
+                # Check if we're in a request context
+                api_data = {
+                    'request_id': getattr(g, 'request_id', 'unknown'),
+                    'method': request.method,
+                    'url': request.url,
+                    'endpoint': request.endpoint,
+                    'exception_type': type(exception).__name__,
+                    'exception_message': str(exception),
+                    'type': 'exception'
+                }
+                self.log_error("Unhandled exception during request", api_data, exc_info=True)
+            except RuntimeError:
+                # Not in request context - just log the exception
+                self.log_error(
+                    f"Exception during teardown: {type(exception).__name__}: {str(exception)}",
+                    exc_info=True
+                )
     
     def _should_skip_logging(self):
         """Determine if logging should be skipped for this request."""
@@ -232,8 +240,7 @@ class APILogger:
                 0,
                 message,
                 (),
-                None,
-                exc_info=exc_info
+                exc_info  # Pass exc_info as positional argument, not keyword
             )
             record.api_data = api_data or {}
             self.error_logger.handle(record)
