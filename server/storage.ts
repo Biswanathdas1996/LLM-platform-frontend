@@ -561,3 +561,41 @@ export class RAGStorage {
 export interface IStorage {
   // Existing methods can be added here if needed
 }
+
+export class DatasetStorage {
+  private datasets: Map<number, any> = new Map();
+  private dataStore: Map<number, any[][]> = new Map(); // Store actual CSV/Excel data
+  private nextId: number = 1;
+
+  async create(dataset: any): Promise<any> {
+    const id = this.nextId++;
+    const newDataset = {
+      ...dataset,
+      id,
+      uploadedAt: new Date(),
+    };
+    this.datasets.set(id, newDataset);
+    return newDataset;
+  }
+
+  async getAll(): Promise<any[]> {
+    return Array.from(this.datasets.values());
+  }
+
+  async getById(id: number): Promise<any | null> {
+    return this.datasets.get(id) || null;
+  }
+
+  async delete(id: number): Promise<boolean> {
+    this.dataStore.delete(id);
+    return this.datasets.delete(id);
+  }
+
+  async storeData(id: number, data: any[][]): Promise<void> {
+    this.dataStore.set(id, data);
+  }
+
+  async getData(id: number): Promise<any[][] | null> {
+    return this.dataStore.get(id) || null;
+  }
+}
