@@ -3,8 +3,12 @@ import { api, GenerateRequest, RAGQueryRequest } from '@/lib/api';
 
 export function useHealth() {
   return useQuery({
-    queryKey: ['/api/v1/health'],
-    queryFn: () => api.health(),
+    queryKey: ['/api/health'],
+    queryFn: async () => {
+      const response = await fetch('/api/health');
+      if (!response.ok) throw new Error('Health check failed');
+      return response.json();
+    },
     refetchInterval: 30000, // Check health every 30 seconds
     retry: 0, // Don't retry health checks to avoid spam
     staleTime: 0, // Always check for fresh data
