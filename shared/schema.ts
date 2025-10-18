@@ -32,6 +32,17 @@ export const chatMessages = pgTable("chat_messages", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
 });
 
+export const datasets = pgTable("datasets", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  filename: text("filename").notNull(),
+  size: integer("size").notNull(),
+  rows: integer("rows").notNull(),
+  columns: integer("columns").notNull(),
+  columnNames: text("column_names").array().notNull(),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+});
+
 export const insertModelSchema = createInsertSchema(models).omit({
   id: true,
   modified: true,
@@ -47,12 +58,19 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   timestamp: true,
 });
 
+export const insertDatasetSchema = createInsertSchema(datasets).omit({
+  id: true,
+  uploadedAt: true,
+});
+
 export type Model = typeof models.$inferSelect;
 export type InsertModel = z.TypeOf<typeof insertModelSchema>;
 export type ExternalApi = typeof externalApis.$inferSelect;
 export type InsertExternalApi = z.TypeOf<typeof insertExternalApiSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.TypeOf<typeof insertChatMessageSchema>;
+export type Dataset = typeof datasets.$inferSelect;
+export type InsertDataset = z.TypeOf<typeof insertDatasetSchema>;
 
 export interface RAGIndex {
   name: string;
@@ -92,4 +110,26 @@ export interface RAGUploadResponse {
   }>;
   total_processed: number;
   total_errors: number;
+}
+
+export interface DatasetData {
+  headers: string[];
+  rows: any[][];
+  rowCount: number;
+  columnCount: number;
+}
+
+export interface DataInsight {
+  type: 'summary' | 'trend' | 'anomaly' | 'correlation' | 'prediction';
+  title: string;
+  description: string;
+  confidence?: number;
+  data?: any;
+}
+
+export interface AnalyticsResponse {
+  dataset: Dataset;
+  data: DatasetData;
+  insights: DataInsight[];
+  statistics: Record<string, any>;
 }
